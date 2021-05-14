@@ -1,1 +1,1 @@
-current_user = ['2018-0001','RAFAEL','TIBUDAN','MALE', 'paeng123', '123546']
+current_user = ['1', '2018-0001','RAFAEL','TIBUBUDAN','MALE','paeng123']

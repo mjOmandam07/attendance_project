@@ -1,4 +1,5 @@
 import sqlite3
+import secrets
 
 conn = sqlite3.connect('attendance.db')
 
@@ -6,8 +7,9 @@ conn = sqlite3.connect('attendance.db')
 class db(object):
 	def __init__(self, id_number=None, first_name=None, last_name=None,
 						gender=None, username=None, password=None,
-						current_id=None):
+						current_id=None, unique_id=None):
 
+		self.unique_id = unique_id
 		self.id_number = id_number
 		self.first_name = first_name
 		self.last_name = last_name
@@ -15,34 +17,60 @@ class db(object):
 		self.password = password
 		self.gender = gender
 		self.current_id = current_id
+		self.sec = secrets.Secreto()
 
 
 
 
 	def add_student(self):
 		cursor = conn.cursor()
+
+		hashed_pass = self.sec.to_hash(self.password)
+		student = (self.id_number, self.first_name, self.last_name, self.gender, self.username, hashed_pass,)
 		sql = """
 				INSERT INTO student (id_number, first_name, last_name, gender, username, password)
-				VALUES('%s', '%s', '%s', '%s', '%s', '%s')  
-			""" % (self.id_number, self.first_name, self.last_name, self.gender, self.username, self.password)
+				VALUES(?,?,?,?,?,?)  
+			""" 
 
-		cursor.execute(sql)
-		conn.commit()
+		try:
+			cursor.execute(sql, student)
+			conn.commit()
 
+		except Exception as e:
+			print(e)
+		
 
 	def update_student(self):
 		cursor = conn.cursor()
-		sql = """UPDATE student SET id_number= '%s', first_name = '%s',
-		 					last_name = '%s', gender = '%s', username = '%s', password = '%s'
-                WHERE id_number = '%s'"""  % (self.id_number, self.first_name, 
+		hashed_pass = self.sec.to_hash(self.password)
+		student = (self.id_number, self.first_name, 
                 								self.last_name, 
                 								self.gender, 
                 								self.username, 
-                								self.password,
-                								self.current_id)
+                								hashed_pass,
+                								self.current_id,)
+		sql = """UPDATE student SET id_number= ?, first_name = ?,
+		 					last_name = ?, gender = ?, username = ?, password = ?
+                WHERE id_number = ?""" 
 
-		cursor.execute(sql)
-		conn.commit()
+		try:
+			cursor.execute(sql, student)
+			conn.commit()
+		except Exception as e:
+			print(e)
+
+	def update_student_password(self):
+		cursor = conn.cursor()
+		hashed_pass = self.sec.to_hash(self.password)
+		teacher = (hashed_pass, self.current_id)
+
+		sql = """UPDATE student SET password = ? WHERE id_number = ?"""
+
+		try:
+			cursor.execute(sql, teacher)
+			conn.commit()
+		except Exception as e:
+			print(e)
 
 	def check_student_username(self):
 		cursor = conn.cursor()
@@ -68,32 +96,86 @@ class db(object):
 		else:
 			return False
 
+	def login_student(self):
+		username = self.username
+		cursor = conn.cursor()
+		conn.row_factory = sqlite3.Row
+		sql = ''' SELECT * FROM student WHERE username=? '''
+		cur = conn.cursor()
+		try:
+			cur.execute(sql, (username,))
+			data = cur.fetchone()
+			if data:
+				return data
+			else:
+				return False
+		except Error as e:
+			print(e)
+		
 
-############################################ TEACHER PART #######################################33
+	def login_student_back(self):
+		cursor = conn.cursor()
+		sql = """SELECT * FROM student WHERE id = '{}'""".format(self.unique_id)
+		cursor.execute(sql)
+		display = cursor.fetchone()
+
+		if display:
+			return display
+		else:
+			return False
+
+########################################### TEACHER PART #######################################33
 	def add_teacher(self):
 		cursor = conn.cursor()
+
+		hashed_pass = self.sec.to_hash(self.password)
+		teacher = (self.id_number, self.first_name, self.last_name, self.gender, self.username, hashed_pass)
+
 		sql = """
 				INSERT INTO lecturer (id_number, first_name, last_name, gender, username, password)
-				VALUES('%s', '%s', '%s', '%s', '%s', '%s')  
-			""" % (self.id_number, self.first_name, self.last_name, self.gender, self.username, self.password)
+				VALUES(?,?,?,?,?,?)  
+			"""
 
-		cursor.execute(sql)
-		conn.commit()
+		
+		try:
+			cursor.execute(sql, teacher)
+			conn.commit()
+			
+		except Exception as e:
+			print(e)
 
 
 	def update_teacher(self):
 		cursor = conn.cursor()
-		sql = """UPDATE lecturer SET id_number= '%s', first_name = '%s',
-		 					last_name = '%s', gender = '%s', username = '%s', password = '%s'
-                WHERE id_number = '%s'"""  % (self.id_number, self.first_name, 
+		teacher = (self.id_number, self.first_name, 
                 								self.last_name, 
                 								self.gender, 
                 								self.username, 
-                								self.password,
-                								self.current_id)
+                								self.current_id,)
+		
+		sql = """UPDATE lecturer SET id_number= ?, first_name = ?,
+		 					last_name = ?, gender = ?, username = ?
+                WHERE id_number = ?"""
 
-		cursor.execute(sql)
-		conn.commit()
+		try:
+			cursor.execute(sql, teacher)
+			conn.commit()
+		except Exception as e:
+			print(e)
+
+	def update_teacher_password(self):
+		cursor = conn.cursor()
+		hashed_pass = self.sec.to_hash(self.password)
+		teacher = (hashed_pass, self.current_id)
+
+		sql = """UPDATE lecturer SET password = ? WHERE id_number = ?"""
+
+		try:
+			cursor.execute(sql, teacher)
+			conn.commit()
+		except Exception as e:
+			print(e)
+
 
 	def check_teacher_username(self):
 		cursor = conn.cursor()
@@ -121,7 +203,7 @@ class db(object):
 
 	def view_all_students(self):
 		cursor = conn.cursor()
-		sql = """ SELECT id_number, last_name, first_name FROM student"""
+		sql = """ SELECT id_number, last_name, first_name, gender FROM student"""
 
 		cursor.execute(sql)
 		display = cursor.fetchall()
@@ -132,6 +214,32 @@ class db(object):
 			pass
 
 
+	def login_teacher(self):
+		username = self.username
+		cursor = conn.cursor()
+		conn.row_factory = sqlite3.Row
+		sql = ''' SELECT * FROM lecturer WHERE username=? '''
+		cur = conn.cursor()
+		try:
+			cur.execute(sql, (username,))
+			data = cur.fetchone()
+			if data:
+				return data
+			else:
+				return False
+		except Error as e:
+			print(e)
+		
+	def login_teacher_back(self):
+		cursor = conn.cursor()
+		sql = """SELECT * FROM lecturer WHERE id = '{}'""".format(self.unique_id)
+		cursor.execute(sql)
+		display = cursor.fetchone()
+
+		if display:
+			return display
+		else:
+			return False
 
 
 

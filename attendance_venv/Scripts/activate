@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="D:\pythonProject\attendance_project\attendance_venv"
+VIRTUAL_ENV="D:\pythonProject\CSC161 Project\attendance_venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
