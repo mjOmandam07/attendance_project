@@ -3,9 +3,9 @@ from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QWidget
 from PyQt5.QtGui import QPixmap
+from login import Ui_Dialog
 import secrets
-
-import sqlite3
+import database as database
 
 
 class WelcomeScreen(QDialog):
@@ -25,30 +25,28 @@ class WelcomeScreen(QDialog):
         widget.addWidget(create)
         widget.setCurrentIndex(widget.currentIndex() + 1)
 
-class LoginScreen(QDialog):
+class LoginScreen(QDialog, Ui_Dialog):
     def __init__(self):
         super(LoginScreen, self).__init__()
-        loadUi("login.ui",self)
-        self.passwordfield.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.setupUi(self)
+        #loadUi("login.ui",self)
+        #self.password.setEchoMode(QtWidgets.QLineEdit.Password)
         self.login.clicked.connect(self.loginfunction)
 
     def loginfunction(self):
-        username = self.userfield.text()
-        password = self.passwordfield.text()
+        username = self.username.text()
+        password = self.password.text()
 
         if len(username)==0 or len(password)==0:
             self.error.setText("Please fill in all fields.")
 
         else:
-            conn = sqlite3.connect("attendance.db")
-            cur = conn.cursor()
-            query = 'SELECT password FROM student WHERE username =\''+username+"\'"
-            cur.execute(query)
-            result_pass = cur.fetchone()[0]
-            if result_pass == password:
+            data = database.Database.login_student(self)
+            if data == password:
                 print("Successfully logged in.")
                 self.error.setText("")
             else:
+                print("F")
                 self.error.setText("Invalid username or password")
 
 class CreateAccScreen(QDialog):
