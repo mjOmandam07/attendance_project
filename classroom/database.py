@@ -1,11 +1,12 @@
 import sqlite3
+import secrets
 
 
 class Database(object):
 	def __init__(self, id_number=None, first_name=None, last_name=None, gender=None, username=None, password=None, current_id=None, unique_id=None):
 		super(Database, self).__init__()
 		
-		self.unique_id = unique_id.get
+		self.unique_id = unique_id
 		self.id_number = id_number
 		self.first_name = first_name
 		self.last_name = last_name
@@ -17,7 +18,7 @@ class Database(object):
 
 	@classmethod
 	def all(cls):
-		conn = sqlit3.connect("attendance.db")
+		conn = sqlite3.connect("attendance.db")
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM student')
 		data = cur.fetchall()
@@ -31,14 +32,17 @@ class Database(object):
 		conn.commit()
 
 	def login_student(self):
+		username = self.username
 		conn = sqlite3.connect("attendance.db")
 		cur = conn.cursor()
-		cur.execute('SELECT * FROM student WHERE username = ? and password = ?', (str(self.username), str(self.password),))
-		data = cur.fetchone()
-		if data == self.username and self.password:
-			print("Noice")
-			self.accept()
-			return data
-		else:
-			print("ew")
-			return False
+		conn.row_factory = sqlite3.Row
+		sql = ''' SELECT * FROM student WHERE username=?'''
+		try:
+			cur.execute(sql, (username,))
+			data = cur.fetchone()
+			if data:
+				return data
+			else:
+				return False
+		except Error as e:
+			print(e)

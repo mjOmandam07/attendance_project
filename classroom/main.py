@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QWidget
 from PyQt5.QtGui import QPixmap
 from login import Ui_Dialog
 import secrets
-import database as database
+from database import *
 
 
 class WelcomeScreen(QDialog):
@@ -41,8 +41,9 @@ class LoginScreen(QDialog, Ui_Dialog):
             self.error.setText("Please fill in all fields.")
 
         else:
-            data = database.Database.login_student(self)
-            if data == password:
+            data = Database(username=username)
+            to_confirm = data.login_student()
+            if to_confirm[6] == password:
                 print("Successfully logged in.")
                 self.error.setText("")
             else:
