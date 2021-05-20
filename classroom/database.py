@@ -26,10 +26,18 @@ class Database(object):
 		return data
 
 	def createacc_student(self):
-		conn = sqlit3.connect("attendance.db")
-		cur = conn.cursor()
-		cur.execute('INSERT INTO student(id_number, first_name, last_name, gender, username, password) VALUES(?, ?, ?, ?, ?, ?)', (self.id_number, self.first_name, self.last_name,self.gender, self.username, self.password))
-		conn.commit()
+		conn = sqlite3.connect("attendance.db")
+		cursor = conn.cursor()
+		hashed_pass = self.sec.to_hash(self.password)
+		student = (self.id_number, self.first_name, self.last_name, self.gender, self.username, hashed_pass,)
+		sql = """INSERT INTO student (id_number, first_name, last_name, gender, username, password)VALUES(?,?,?,?,?,?)""" 
+		try:
+			cursor.execute(sql, student)
+			conn.commit()
+			print("noice!")
+
+		except Exception as e:
+			print(e)
 
 	def login_student(self):
 		username = self.username

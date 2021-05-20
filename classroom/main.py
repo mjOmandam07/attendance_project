@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QWidget
 from PyQt5.QtGui import QPixmap
 from login import Ui_Dialog
+from createacc import Ui_Dialog2
 import secrets
 from database import *
 
@@ -46,33 +47,28 @@ class LoginScreen(QDialog, Ui_Dialog):
             if to_confirm[6] == password:
                 print("Successfully logged in.")
                 self.error.setText("")
+
+                dashboard = DashboardScreen()
+                widget.addWidget(dashboard)
+                widget.setCurrentIndex(widget.currentIndex()+1)
             else:
                 print("F")
                 self.error.setText("Invalid username or password")
 
-class CreateAccScreen(QDialog):
-    def __init__(self, id_number=None, first_name=None, last_name=None, gender=None, username=None, password=None, current_id=None, unique_id=None):
-
-        self.unique_id = unique_id
-        self.id_number = id_number
-        self.first_name = first_name
-        self.last_name = last_name
-        self.username = username
-        self.password = password
-        self.gender = gender
-        self.current_id = current_id
-
+class CreateAccScreen(QDialog, Ui_Dialog2):
+    def __init__(self):
         super(CreateAccScreen, self).__init__()
-        loadUi("createacc.ui",self)
-        self.passwordfield.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.confirmpasswordfield.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.setupUi2(self)
+        #loadUi("createacc.ui",self)
+        #self.passwordfield.setEchoMode(QtWidgets.QLineEdit.Password)
+        #self.confirmpasswordfield.setEchoMode(QtWidgets.QLineEdit.Password)
         self.signup.clicked.connect(self.signupfunction)
 
     def signupfunction(self):
         first_name = self.firstnamefield.text()
         last_name = self.lastnamefield.text()
         id_number = self.idnofield.text()
-        gender = self.genderbox
+        gender = self.genderbox.currentText().upper()
         username = self.userfield.text()
         password = self.passwordfield.text()
         confirmpassword = self.confirmpasswordfield.text()
@@ -85,25 +81,20 @@ class CreateAccScreen(QDialog):
             self.error.setText("Password doesn't match!")
 
         else:
-            conn = sqlite3.connect("attendance.db")
-            cur = conn.cursor()
+            data = Database(id_number = id_number, first_name = first_name, last_name = last_name, gender = gender, username = username, password=password)
 
-            hashed_pass = self.sec.to_hash(self.password)
-            student = (self.id_number, self.first_name, self.last_name, self.gender, self.username, hashed_pass,)
-            cur.execute('INSERT INTO student(id_number, first_name, last_name, gender, username, password)VALUES(?,?,?,?,?,?)',student)
+            data.createacc_student()
+            print("noice")
 
-            conn.commit()
-            conn.close()
-
-            fillprofile = DashboardScreen()
-            widget.addWidget(fillprofile)
+            dashboard = DashboardScreen()
+            widget.addWidget(dashboard)
             widget.setCurrentIndex(widget.currentIndex()+1)
 
 class DashboardScreen(QDialog):
     def __init__(self):
-        super(FillProfileScreen, self).__init__()
+        super(DashboardScreen, self).__init__()
         loadUi("dashboard.ui",self)
-        self.image.setPixmap(QPixmap('placeholder.png'))
+
 
 
 
