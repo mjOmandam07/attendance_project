@@ -114,13 +114,13 @@ class AttendanceScreen(QDialog):
 
         data = Database()
         attend = data.attendance()
-        print("noice")
+        print("noice!")
 
         tablerow=0
         self.tableWidget.setRowCount(40)
         for row in attend:
-            self.tableWidget.setItem(tablerow, 0, QtWidgets.QTableWidgetItem(row[0]))
-            self.tableWidget.setItem(tablerow, 1, QtWidgets.QTableWidgetItem(row[1]))
+            self.tableWidget.setItem(tablerow, 0, QtWidgets.QTableWidgetItem(row[1]))
+            self.tableWidget.setItem(tablerow, 1, QtWidgets.QTableWidgetItem(row[3]))
             self.tableWidget.setItem(tablerow, 2, QtWidgets.QTableWidgetItem(row[2]))
             tablerow+=1
 

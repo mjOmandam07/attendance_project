@@ -59,22 +59,12 @@ class Database(object):
 			print(e)
 
 	def attendance(self):
-		student = (self.id_number, self.first_name, self.last_name)
+		username = self.username
 		conn = sqlite3.connect("attendance.db")
 		cur = conn.cursor()
 		conn.row_factory = sqlite3.Row
 		sql = '''SELECT * FROM student'''
 		cur.execute(sql)
 		data = cur.fetchall()
-		cur.close()
 		return data
 
-		'''try:
-			cur.execute(sql, student)
-			data = cur.fetchone()
-			if data:
-				return data
-			else:
-				return False
-		except Error as e:
-			print(e)'''
