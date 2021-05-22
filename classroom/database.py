@@ -1,9 +1,11 @@
 import sqlite3
 import secrets
+from sqlite3 import Error
+import datetime
 
 
 class Database(object):
-	def __init__(self, id_number=None, first_name=None, last_name=None, gender=None, username=None, password=None, current_id=None, unique_id=None):
+	def __init__(self, id_number=None, first_name=None, last_name=None, gender=None, username=None, password=None, current_id=None, unique_id=None, time = None):
 		super(Database, self).__init__()
 		
 		self.unique_id = unique_id
@@ -14,6 +16,7 @@ class Database(object):
 		self.password = password
 		self.gender = gender
 		self.current_id = current_id
+		self.time = time
 		self.sec = secrets.Secreto()
 
 	@classmethod
@@ -54,3 +57,24 @@ class Database(object):
 				return False
 		except Error as e:
 			print(e)
+
+	def attendance(self):
+		student = (self.id_number, self.first_name, self.last_name)
+		conn = sqlite3.connect("attendance.db")
+		cur = conn.cursor()
+		conn.row_factory = sqlite3.Row
+		sql = '''SELECT * FROM student'''
+		cur.execute(sql)
+		data = cur.fetchall()
+		cur.close()
+		return data
+
+		'''try:
+			cur.execute(sql, student)
+			data = cur.fetchone()
+			if data:
+				return data
+			else:
+				return False
+		except Error as e:
+			print(e)'''

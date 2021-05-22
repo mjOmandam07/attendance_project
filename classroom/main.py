@@ -94,7 +94,35 @@ class DashboardScreen(QDialog):
     def __init__(self):
         super(DashboardScreen, self).__init__()
         loadUi("dashboard.ui",self)
+        self.join.clicked.connect(self.joinClassroomFunction)
 
+    def joinClassroomFunction(self):
+        Attend = AttendanceScreen()
+        widget.addWidget(Attend)
+        widget.setCurrentIndex(widget.currentIndex()+1)
+
+class AttendanceScreen(QDialog):
+    def __init__(self):
+        super(AttendanceScreen, self).__init__()
+        loadUi("attendance.ui",self)
+        self.tableWidget.setColumnWidth(0,250)
+        self.tableWidget.setColumnWidth(1,100)
+        self.tableWidget.setColumnWidth(2,350)
+        self.loaddata()
+
+    def loaddata(self):
+
+        data = Database()
+        attend = data.attendance()
+        print("noice")
+
+        tablerow=0
+        self.tableWidget.setRowCount(40)
+        for row in attend:
+            self.tableWidget.setItem(tablerow, 0, QtWidgets.QTableWidgetItem(row[0]))
+            self.tableWidget.setItem(tablerow, 1, QtWidgets.QTableWidgetItem(row[1]))
+            self.tableWidget.setItem(tablerow, 2, QtWidgets.QTableWidgetItem(row[2]))
+            tablerow+=1
 
 
 
