@@ -58,6 +58,41 @@ class Database(object):
 		except Error as e:
 			print(e)
 
+	def confirmjoin(self):
+		'''
+		conn = sqlite3.connect("attendance.db")
+		cursor = conn.cursor()
+		student = (self.id_number, self.first_name, self.last_name, self.current_id,)
+		sql = """UPDATE student SET id_number= ?, first_name = ?, last_name = ? WHERE id_number = ?""" 
+		try:
+			cursor.execute(sql, student)
+			conn.commit()
+		except Exception as e:
+			print(e)'''
+
+		conn = sqlite3.connect("attendance.db")
+		cursor = conn.cursor()
+		sql = """SELECT id_number FROM student WHERE id_number = ?""",(self.id_number)
+		cursor.execute(sql)
+		display = cursor.fetchall()
+
+		if display:
+			return True
+		else:
+			return False
+
+	def classroom(self):
+		conn = sqlite3.connect("attendance.db")
+		cur = conn.cursor()
+		attendee = (self.id_number, self.last_name, self.first_name, self.time)
+		sql = """INSERT INTO classroom (id_number, last_name, first_name, time) VALUES(?,?,?,?,)"""
+		try:
+			cur.execute(sql,attendee)
+			conn.commit()
+			print('watashi wa here!')
+		except Exception as e:
+			print(e)
+
 	def attendance(self):
 		username = self.username
 		conn = sqlite3.connect("attendance.db")

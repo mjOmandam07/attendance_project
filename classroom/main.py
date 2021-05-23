@@ -90,6 +90,7 @@ class CreateAccScreen(QDialog, Ui_Dialog2):
             widget.addWidget(dashboard)
             widget.setCurrentIndex(widget.currentIndex()+1)
 
+
 class DashboardScreen(QDialog):
     def __init__(self):
         super(DashboardScreen, self).__init__()
@@ -97,9 +98,40 @@ class DashboardScreen(QDialog):
         self.join.clicked.connect(self.joinClassroomFunction)
 
     def joinClassroomFunction(self):
-        Attend = AttendanceScreen()
+        Attend = ConfrimJoinScreen()
         widget.addWidget(Attend)
         widget.setCurrentIndex(widget.currentIndex()+1)
+
+
+class ConfrimJoinScreen(QDialog):
+    def __init__(self):
+        super(ConfrimJoinScreen, self).__init__()
+        loadUi("confirmjoin.ui", self)
+        self.join.clicked.connect(self.confirmjoinfun)
+
+    def confirmjoinfun(self):
+        first_name = self.firstnamefield.text()
+        last_name = self.lastnamefield.text()
+        id_number = self.idnofield.text()
+
+        data = Database(first_name=first_name, last_name = last_name, id_number = id_number, current_id = current_user[1])
+        self.firstnamefield.setItem(row[2])
+        self.lastnamefield.setItem(row[3])
+        self.idnofield.setItem(row[1])
+'''
+        to_confirm = data.confrimjoin()
+        login_back = Database(unique_id = current_user[0])
+        logged_back = login_back.login_student_back()
+
+        current_user.clear()
+        for item in logged_back:
+            current_user.append(item)
+
+        login_signUp_ui_functions.popups(self, "update_success")
+        print(current_user)'''
+
+
+        
 
 class AttendanceScreen(QDialog):
     def __init__(self):
@@ -113,7 +145,7 @@ class AttendanceScreen(QDialog):
     def loaddata(self):
 
         data = Database()
-        attend = data.attendance()
+        attend = data.classroom()
         print("noice!")
 
         tablerow=0
