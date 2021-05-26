@@ -115,7 +115,7 @@ class ConfrimJoinScreen(QDialog):
     def __init__(self):
         super(ConfrimJoinScreen, self).__init__()
         loadUi("confirmjoin.ui", self)
-        self.join.clicked.connect(self.confirmjoinfun)
+        self.confirmjoinfun()
 
     def confirmjoinfun(self):
         first_name = self.firstnamefield.text()
@@ -124,11 +124,10 @@ class ConfrimJoinScreen(QDialog):
 
         if len(current_user) != 0:
             print('fu',current_user)
-            for item in current_user:
-                print('oof',item)
-                self.firstnamefield.setText(item[2])
-                self.lastnamefield.setText(item[3])
-                self.idnofield.setText(item[1])
+            #print('oof',item)
+            self.firstnamefield.setText(current_user[2])
+            self.lastnamefield.setText(current_user[3])
+            self.idnofield.setText(current_user[1])
 '''
         to_confirm = data.confrimjoin()
         login_back = Database(unique_id = current_user[0])
