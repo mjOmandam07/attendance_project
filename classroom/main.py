@@ -7,6 +7,8 @@ from login import Ui_Dialog
 from createacc import Ui_Dialog2
 import secrets
 from database import *
+from datetime import datetime
+
 
 current_user = []
 
@@ -128,17 +130,24 @@ class ConfrimJoinScreen(QDialog):
             self.firstnamefield.setText(current_user[2])
             self.lastnamefield.setText(current_user[3])
             self.idnofield.setText(current_user[1])
-'''
-        to_confirm = data.confrimjoin()
-        login_back = Database(unique_id = current_user[0])
-        logged_back = login_back.login_student_back()
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            self.timefield.setText(current_time)
+            self.join.clicked.connect(self.attendacefun)
 
-        current_user.clear()
-        for item in logged_back:
-            current_user.append(item)
+    def attendacefun(self):
+        first_name = self.firstnamefield.text()
+        last_name = self.lastnamefield.text()
+        id_number = self.idnofield.text()
+        jointime = self.timefield.text()
 
-        login_signUp_ui_functions.popups(self, "update_success")
-        print(current_user)'''
+        data = Database(id_number = id_number, first_name = first_name, last_name = last_name, jointime = jointime)
+        data.classroom()
+        print("boo")
+
+        attendace_screen = AttendanceScreen()
+        widget.addWidget(attendace_screen)
+        widget.setCurrentIndex(widget.currentIndex()+1)
 
 
         
@@ -148,22 +157,22 @@ class AttendanceScreen(QDialog):
         super(AttendanceScreen, self).__init__()
         loadUi("attendance.ui",self)
         self.tableWidget.setColumnWidth(0,250)
-        self.tableWidget.setColumnWidth(1,100)
-        self.tableWidget.setColumnWidth(2,350)
+        self.tableWidget.setColumnWidth(1,350)
+        self.tableWidget.setColumnWidth(2,100)
         self.loaddata()
 
     def loaddata(self):
 
         data = Database()
-        attend = data.classroom()
-        print("noice!")
+        attend = data.attendance()
+        print("fu!")
 
         tablerow=0
         self.tableWidget.setRowCount(40)
         for row in attend:
             self.tableWidget.setItem(tablerow, 0, QtWidgets.QTableWidgetItem(row[1]))
-            self.tableWidget.setItem(tablerow, 1, QtWidgets.QTableWidgetItem(row[3]))
-            self.tableWidget.setItem(tablerow, 2, QtWidgets.QTableWidgetItem(row[2]))
+            self.tableWidget.setItem(tablerow, 1, QtWidgets.QTableWidgetItem(row[2]+" "+row[3]))
+            self.tableWidget.setItem(tablerow, 2, QtWidgets.QTableWidgetItem(row[4]))
             tablerow+=1
 
 
