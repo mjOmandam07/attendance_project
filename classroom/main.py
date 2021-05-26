@@ -8,6 +8,9 @@ from createacc import Ui_Dialog2
 import secrets
 from database import *
 
+current_user = []
+
+
 
 class WelcomeScreen(QDialog):
     def __init__(self):
@@ -35,6 +38,7 @@ class LoginScreen(QDialog, Ui_Dialog):
         self.login.clicked.connect(self.loginfunction)
 
     def loginfunction(self):
+        current_user.clear()
         username = self.username.text()
         password = self.password.text()
 
@@ -45,6 +49,10 @@ class LoginScreen(QDialog, Ui_Dialog):
             data = Database(username=username)
             to_confirm = data.login_student()
             if to_confirm[6] == password:
+                for item in to_confirm:
+                    current_user.append(item)
+                    print('He',item)
+                    print('Nge',current_user)
                 print("Successfully logged in.")
                 self.error.setText("")
 
@@ -114,10 +122,13 @@ class ConfrimJoinScreen(QDialog):
         last_name = self.lastnamefield.text()
         id_number = self.idnofield.text()
 
-        data = Database(first_name=first_name, last_name = last_name, id_number = id_number, current_id = current_user[1])
-        self.firstnamefield.setItem(row[2])
-        self.lastnamefield.setItem(row[3])
-        self.idnofield.setItem(row[1])
+        if len(current_user) != 0:
+            print('fu',current_user)
+            for item in current_user:
+                print('oof',item)
+                self.firstnamefield.setText(item[2])
+                self.lastnamefield.setText(item[3])
+                self.idnofield.setText(item[1])
 '''
         to_confirm = data.confrimjoin()
         login_back = Database(unique_id = current_user[0])
