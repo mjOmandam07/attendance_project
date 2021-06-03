@@ -1,5 +1,6 @@
 import re
 import secrets
+from datetime import datetime, date, timedelta
 from app_main import *
 from app_backend import *
 from more_itertools import unique_everseen
@@ -68,6 +69,22 @@ class login_signUp_ui_functions(login_signUp_window):
 			msg.setWindowTitle("ERROR!")
 			msg.setText("Password does not match")
 			msg.setIcon(QMessageBox.Critical)
+
+		elif category == 'add_class_success':
+			msg.setWindowTitle("Success!")
+			msg.setText("Class Added!")
+			msg.setIcon(QMessageBox.Information)
+
+		elif category == 'class_updated':
+			msg.setWindowTitle("Success!")
+			msg.setText("Class Updated")
+			msg.setIcon(QMessageBox.Information)
+
+		elif category == 'class_deleted':
+			msg.setWindowTitle("Success!")
+			msg.setText("Class Deleted")
+			msg.setIcon(QMessageBox.Information)
+
 
 		x = msg.exec_()
 
@@ -167,7 +184,6 @@ class login_signUp_ui_functions(login_signUp_window):
 		password = secr.to_process(self.ui.student_login_password.text())
 
 		database = db(username=username)
-
 
 		user_to_confirm = database.login_student()
 		if user_to_confirm:
@@ -302,7 +318,8 @@ class teacher_dash_ui_functs(teacher_dashboard):
 		self.ui.teacher_edit.clicked.connect(self.teacher_dash_buttons)
 		self.ui.teacher_change_pass.clicked.connect(self.teacher_dash_buttons)
 		self.ui.teacher_logout.clicked.connect(self.teacher_dash_buttons)
-
+		self.ui.add_class.clicked.connect(self.teacher_dash_buttons)
+		
 	def view_teacher_account(self):
 		fname = self.ui.teacher_fname_edit.setText(current_user[2])
 		lname = self.ui.teacher_lname_edit.setText(current_user[3])
@@ -361,11 +378,7 @@ class teacher_dash_ui_functs(teacher_dashboard):
 		for item in logged_back[:6]:
 			current_user.append(item)
 
-
 		login_signUp_ui_functions.popups(self, "update_success")
-
-		print(current_user)
-
 		self.disable_teacher_edit()
 
 	def teacher_update_pass(self):
@@ -415,3 +428,53 @@ class teacher_dash_ui_functs(teacher_dashboard):
 					self.ui.student_list_lname.setText(str(i[1]))
 					self.ui.student_list_id.setText(str(i[0]))
 					self.ui.student_list_gender.setText(str(i[3]))
+
+	def add_new_class(self):
+		class_name = self.ui.course_name.text()
+		class_code = self.ui.course_code.text()
+		class_expire_date = self.ui.course_expire_date.date().toString('yyyy-MM-dd')
+		class_expire_time = self.ui.course_expire_time.text()
+
+
+		time = datetime.strptime(class_expire_time, "%I:%M %p")
+		new_format_time = datetime.strftime(time, "%H:%M")
+
+		class_expire_datetime = class_expire_date + " " +  new_format_time
+
+		database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True, lecturer=current_user[1])
+		database.add_class()
+
+		login_signUp_ui_functions.popups(self, "add_class_success")
+
+	def get_classes(self):
+		database = db(id_number=current_user[1])
+		display = database.view_all_class()
+
+		return display
+
+	def del_class(self, id_num):
+		database = db(id_number = id_num, current_id=current_user[1])
+		database.delete_class()
+
+		login_signUp_ui_functions.popups(self, "class_deleted")
+
+	def update_class(self, id_num, status, current_exp_datetime):
+		class_name = self.ui.update_course_name.text()
+		class_code = self.ui.update_course_code.text()
+		class_expire_date = self.ui.update_course_expire_date.date().toString('yyyy-MM-dd')
+		class_expire_time = self.ui.update_course_expire_time.text()
+
+
+		time = datetime.strptime(class_expire_time, "%I:%M %p")
+		new_format_time = datetime.strftime(time, "%H:%M")
+		class_expire_datetime = class_expire_date + " " +  new_format_time
+
+		if status == 0 and  current_exp_datetime != class_expire_datetime:
+			database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num, is_active=False)
+		else:
+			database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num)
+		
+		database.update_class()
+		login_signUp_ui_functions.popups(self, "class_updated")
+
+

@@ -7,7 +7,9 @@ conn = sqlite3.connect('attendance.db')
 class db(object):
 	def __init__(self, id_number=None, first_name=None, last_name=None,
 						gender=None, username=None, password=None,
-						current_id=None, unique_id=None):
+						current_id=None, unique_id=None,
+						course_name=None, course_code=None, created_on=None,
+						expire_date=None, is_active=None, lecturer=None, current_datetime = None):
 
 		self.unique_id = unique_id
 		self.id_number = id_number
@@ -19,12 +21,20 @@ class db(object):
 		self.current_id = current_id
 		self.sec = secrets.Secreto()
 
+		self.course_name = course_name
+		self.course_code = course_code
+		self.created_on = created_on
+		self.expire_date = expire_date
+		self.current_datetime = current_datetime
+		self.is_active = is_active
+		self.lecturer = lecturer
+
+
 
 
 
 	def add_student(self):
 		cursor = conn.cursor()
-
 		hashed_pass = self.sec.to_hash(self.password)
 		student = (self.id_number, self.first_name, self.last_name, self.gender, self.username, hashed_pass,)
 		sql = """
@@ -98,8 +108,7 @@ class db(object):
 
 	def login_student(self):
 		username = self.username
-		cursor = conn.cursor()
-		conn.row_factory = sqlite3.Row
+
 		sql = ''' SELECT * FROM student WHERE username=? '''
 		cur = conn.cursor()
 		try:
@@ -144,7 +153,6 @@ class db(object):
 		except Exception as e:
 			print(e)
 
-
 	def update_teacher(self):
 		cursor = conn.cursor()
 		teacher = (self.id_number, self.first_name, 
@@ -175,7 +183,6 @@ class db(object):
 			conn.commit()
 		except Exception as e:
 			print(e)
-
 
 	def check_teacher_username(self):
 		cursor = conn.cursor()
@@ -213,7 +220,6 @@ class db(object):
 		else:
 			pass
 
-
 	def login_teacher(self):
 		username = self.username
 		cursor = conn.cursor()
@@ -241,6 +247,98 @@ class db(object):
 		else:
 			return False
 
+	def add_class(self):
+		cursor = conn.cursor()
+		new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer)
 
+		sql = """
+				INSERT INTO course (course_name, course_code, created_on, expire_date, is_active, lecturer)
+				VALUES(?,?,julianday('now'),julianday(?),?,?)  
+			"""
 
+		
+		try:
+			cursor.execute(sql, new_class)
+			conn.commit()
+			
+		except Exception as e:
+			print(e)
 
+	def view_all_class(self):
+		cursor = conn.cursor()
+		sql = """ SELECT c.id, c.course_name, c.course_code, date(c.created_on),
+				 time(c.created_on), date(c.expire_date), time(c.expire_date), c.is_active, l.first_name, l.last_name
+				 	FROM (course as c LEFT JOIN lecturer as l) 
+				 		WHERE c.lecturer = '{}' AND l.id_number = c.lecturer ORDER BY c.id DESC""".format(self.id_number)
+
+		cursor.execute(sql)
+		display = cursor.fetchall()
+
+		if display:
+			return display
+		else:
+			return False
+
+	def view_select_class(self):
+		cursor = conn.cursor()
+		sql = """ SELECT c.id, c.course_name, c.course_code, date(c.expire_date),
+				 time(c.expire_date), c.is_active,  date(c.created_on),
+				 time(c.created_on),  date(c.updated_on),
+				 time(c.updated_on)
+				 	FROM (course as c LEFT JOIN lecturer as l) 
+				 		WHERE c.id = '{}'""".format(self.id_number)
+
+		cursor.execute(sql)
+		display = cursor.fetchone()
+
+		if display:
+			return display
+		else:
+			return False
+
+	def delete_class(self):
+		cursor = conn.cursor()
+		sql = """DELETE FROM course WHERE id = '{}' AND lecturer = '{}'""".format(self.id_number, self.current_id)
+
+		try:
+			cursor.execute(sql)
+			conn.commit()
+			
+		except Exception as e:
+			print(e)
+
+	def update_class(self):
+		cursor = conn.cursor()
+		update_class = (self.course_name, self.course_code, self.expire_date, self.id_number )
+		
+		if self.is_active == False:
+			sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?),
+				updated_on = julianday('now'), is_active = True
+                WHERE id = ?"""
+		else:
+			sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?), updated_on = julianday('now')
+                WHERE id = ?"""
+
+		try:
+			cursor.execute(sql, update_class)
+			conn.commit()
+		except Exception as e:
+			print(e)
+
+	def view_expired_classes(self):
+		cursor = conn.cursor()
+		sql = """ SELECT id FROM course WHERE is_active = False AND lecturer = '{}' """.format(self.id_number)
+
+		cursor.execute(sql)
+		display = cursor.fetchall()
+
+		if display:
+			for item in display:
+				return item
+		else:
+			return False
+
+#[(7, 'Sample Course', 'CSC123', 2459364.868648935, 2459417.4583333335, 1, '2018-0001', None, '2021-07-21', '23:00:00')]
+'''database = db(current_datetime='2021-06-03 02:00')
+x = database.check_class_expire()
+print(x)'''
