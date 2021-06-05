@@ -1,6 +1,7 @@
 import sys
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QRect, QPropertyAnimation
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import *
@@ -264,33 +265,32 @@ class teacher_dashboard(QMainWindow):
 		self.ui.treeWidget.itemClicked['QTreeWidgetItem*', 'int'].connect(
             lambda: teacher_dash_ui_functs.get_selected_student(self))
 
-
 		self.teacher_classes()
 		thread_starters.start_check_class(self, 'start')
+
 		self.show()
 
 	def update_class_ui(self, status):
-		if status:
-			self.ui.top_notify.show()
-			#self.teacher_classes()
-		elif not status and expired_class:
-			self.ui.top_notify.show()
-			expired_class.clear()
-			#self.teacher_classes()
-		elif not status and not expired_class:
-			database = db(id_number=current_user[1])
-			display = database.view_expired_classes()
-			if display:
-				for item in display:
-					expired_class.append(item)
+		if self.ui.stackedWidget.currentWidget() == self.ui.teacher_home_page:
+			if status:
+				self.ui.top_notify.show()
+				self.teacher_classes()
+			elif not status and expired_class:
+				self.ui.top_notify.show()
+				self.teacher_classes()
+				expired_class.clear()
+				
+			elif not status and not expired_class:
+				database = db(id_number=current_user[1])
+				display = database.view_expired_classes()
+				if display:
+					for item in display:
+						expired_class.append(item)
+				else:
+					self.ui.top_notify.hide()
 			else:
-				self.ui.top_notify.hide()
-				#self.teacher_classes()
-		else:
-			self.ui.top_notify.close()
-			#self.teacher_classes()
+				self.ui.top_notify.close()
 		
-
 	def teacher_dash_buttons(self):
 		btnWidget = self.sender() # RETURNS THE BUTTON PRESSED
 		btn_name = btnWidget.objectName() # RETURNS THE 'NAME' OF THE BUTTON PRESSED
@@ -300,8 +300,10 @@ class teacher_dashboard(QMainWindow):
 		elif btn_name == 'teacher_view_account':
 			self.ui.stackedWidget.setCurrentWidget(self.ui.teacher_account_page)
 			teacher_dash_ui_functs.view_teacher_account(self)
+			self.ui.top_notify.close()
 		elif btn_name == 'teacher_view_students':
 			self.ui.stackedWidget.setCurrentWidget(self.ui.view_students_page)
+			self.ui.top_notify.close()
 		elif btn_name == 'teacher_edit':
 			teacher_dash_ui_functs.teacher_edit_validations(self)
 		elif btn_name == 'teacher_change_pass':
@@ -312,6 +314,7 @@ class teacher_dashboard(QMainWindow):
 				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
 			if reply == QMessageBox.Yes:
+				thread_starters.start_check_class(self, 'stop')
 				self.main = login_signUp_window()
 				self.main.show()
 				current_user.clear()
@@ -448,24 +451,42 @@ class add_class_window(QMainWindow):
 
 		self.ui.course_name.textChanged['QString'].connect(self.disable_add_class)
 		self.ui.course_code.textChanged['QString'].connect(self.disable_add_class)
+		self.ui.course_password.textChanged['QString'].connect(self.disable_add_class)
+		self.ui.course_confirm_password.textChanged['QString'].connect(self.disable_add_class)
+		self.ui.course_add_pass_btn.clicked.connect(self.disable_when_pass)
 		self.ui.add_course.setDisabled(True)
+
+		global add_pass
+		add_pass = False
 		self.show()
 	
+	def disable_when_pass(self):
+		global add_pass
+		add_pass = True
+		self.disable_add_class()
+		if teacher_dash_ui_functs.toggle_add_class_pass(self, 405, True):
+			add_pass = False
+			self.disable_add_class()
+			
 	def store_data(self):
-		#thread_starters.start_check_class(self, 'stop')
 		teacher_dash_ui_functs.add_new_class(self)
-		self.close()
-		main_window.teacher_classes()
-
 
 	def disable_add_class(self):
+		global add_pass
 		course_name = self.ui.course_name.text()
 		course_code = self.ui.course_code.text()
-
-		if course_name and course_code:
-			self.ui.add_course.setDisabled(False)
+		class_pass = self.ui.course_password.text()
+		class_confirm_pass = self.ui.course_confirm_password.text()
+		if add_pass == True:
+			if course_name and course_code and class_pass and class_confirm_pass:
+				self.ui.add_course.setDisabled(False)
+			else:
+				self.ui.add_course.setDisabled(True)
 		else:
-			self.ui.add_course.setDisabled(True)
+			if course_name and course_code:
+				self.ui.add_course.setDisabled(False)
+			else:
+				self.ui.add_course.setDisabled(True)
 
 ###########################     TEACHER VIEW CLASS 	   ############################################
 class view_class_window(QMainWindow):
@@ -486,20 +507,27 @@ class view_class_window(QMainWindow):
 		self.ui.update_course_code.textChanged['QString'].connect(self.disable_update_class)
 		self.ui.update_course_expire_date.dateChanged.connect(self.disable_update_class)
 		self.ui.update_course_expire_time.timeChanged.connect(self.disable_update_class)
+		self.ui.update_course_password.textChanged['QString'].connect(self.disable_update_class)
+		self.ui.update_course_confirm_password.textChanged['QString'].connect(self.disable_update_class)
 		self.ui.update_course.setDisabled(True)
+
+		self.ui.update_pass_btn.clicked.connect(self.disable_when_pass)
+		self.ui.remove_pass_btn.clicked.connect(self.remove_class_pass)
 
 		self.ui.update_course.clicked.connect(self.update_class)
 
 
+		global update_pass
+		update_pass = False
+
 		self.show()
 		
-
 	def display_details(self, id_num):
 		global class_id
 		global status
 		global current_expire_datetime
 		class_id = id_num
-		thread_starters.start_check_class(self, 'stop')
+		
 		database = db(id_number=int(class_id))
 		display = database.view_select_class()
 		code = display[2]
@@ -516,6 +544,15 @@ class view_class_window(QMainWindow):
 		update_date = display[8]
 		update_time = display[9]
 		status = display[5]
+
+		password = display[10]
+
+		if password:
+			self.main.ui.remove_pass_btn.setDisabled(False)
+			self.main.ui.update_pass_btn.setText('Update Password')
+		else:
+			self.main.ui.remove_pass_btn.setDisabled(True)
+			self.main.ui.update_pass_btn.setText('Add Password')
 
 		if update_time:
 			update_datetime = view_class_window.reformat_datetime(self, update_time, update_date, True)
@@ -547,21 +584,33 @@ class view_class_window(QMainWindow):
 		else:
 			return current_date.toString('MMM dd, yyyy'), current_time.toString('h:mm AP')
 
+	def remove_class_pass(self):
+		global class_id
+		teacher_dash_ui_functs.remove_class_password(self, class_id)
+
 	def delete_class(self):
 		global class_id
 		reply = QMessageBox.question(self, 'Delete Class', 'Are you sure you want to delete class?',
 				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
 		if reply == QMessageBox.Yes:
-			thread_starters.start_check_class(self, 'stop')
+			
 			teacher_dash_ui_functs.del_class(self, class_id)
 
 		self.close()
 		main_window.teacher_classes()
 	
+	def disable_when_pass(self):
+		global update_pass
+		update_pass = True
+		self.disable_update_class()
+		if teacher_dash_ui_functs.toggle_update_class_pass(self, 420, True):
+			update_pass = False
+			self.disable_update_class()
+
 	def disable_update_class(self):
 		global class_id
-		thread_starters.start_check_class(self, 'stop')
+		global update_pass
 		database = db(id_number=class_id)
 		display = database.view_select_class()
 
@@ -578,36 +627,45 @@ class view_class_window(QMainWindow):
 		class_code = self.ui.update_course_code.text()
 		class_expire_date = self.ui.update_course_expire_date.date().toString('yyyy-MM-dd')
 		class_expire_time = self.ui.update_course_expire_time.text()
-
+		class_pass = self.ui.update_course_password.text()
+		class_confirm_pass = self.ui.update_course_confirm_password.text()
 
 		time = datetime.strptime(class_expire_time, "%I:%M %p")
 		new_format_time = datetime.strftime(time, "%H:%M")
 
-		if (current_name == course_name and current_code == course_code and 
-			current_exp_date == class_expire_date and current_time == new_format_time):
-
-			self.ui.update_course.setDisabled(True)
+		if update_pass == True:
+			if (current_name != course_name and current_code != course_code and 
+				current_exp_date != class_expire_date and current_time != new_format_time and class_pass and  class_confirm_pass):
+				self.ui.update_course.setDisabled(False)
+			elif (current_name == course_name and current_code == course_code and 
+				current_exp_date == class_expire_date and current_time == new_format_time and class_pass and  class_confirm_pass):
+				self.ui.update_course.setDisabled(False)
+			else:
+				self.ui.update_course.setDisabled(True)
 		else:
-			self.ui.update_course.setDisabled(False)
+			if (current_name == course_name and current_code == course_code and 
+				current_exp_date == class_expire_date and current_time == new_format_time):
+
+				self.ui.update_course.setDisabled(True)
+			else:
+				self.ui.update_course.setDisabled(False)
 
 	def update_class(self):
 		global class_id
 		global status
 		global current_expire_datetime
-		thread_starters.start_check_class(self, 'stop')
+		
 		teacher_dash_ui_functs.update_class(self, class_id, status, current_expire_datetime)
-		self.close()
 		main_window.teacher_classes()
 		
-
 class thread_starters:
 	def start_check_class(self, opt):
-		self.check_class = check_class_expiration_thread()
 		if opt == 'start':
+			self.check_class = check_class_expiration_thread()
 			self.check_class.start()
 			self.check_class.check_class_signal.connect(self.update_class_ui)
 		else:
-			self.check_class.quit()
+			self.check_class.stop()
 
 
 

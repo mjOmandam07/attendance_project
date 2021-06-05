@@ -434,17 +434,66 @@ class teacher_dash_ui_functs(teacher_dashboard):
 		class_code = self.ui.course_code.text()
 		class_expire_date = self.ui.course_expire_date.date().toString('yyyy-MM-dd')
 		class_expire_time = self.ui.course_expire_time.text()
-
-
+		class_pass = self.ui.course_password.text()
+		class_confirm_pass = self.ui.course_confirm_password.text()
 		time = datetime.strptime(class_expire_time, "%I:%M %p")
 		new_format_time = datetime.strftime(time, "%H:%M")
-
 		class_expire_datetime = class_expire_date + " " +  new_format_time
+		database = None
+		if class_pass and class_confirm_pass:
+			if  class_pass != class_confirm_pass:
+				login_signUp_ui_functions.popups(self, 'password_error')
+				self.ui.course_password.clear()
+				self.ui.course_confirm_password.clear()
+			else:
+				database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True,
+								 lecturer=current_user[1], has_pass=True, password =class_confirm_pass)
 
-		database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True, lecturer=current_user[1])
-		database.add_class()
+		else:
+			database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True,
+								 lecturer=current_user[1], has_pass=False)
+		
+		if database:
+			database.add_class()
+			login_signUp_ui_functions.popups(self, "add_class_success")
+			self.close()
 
-		login_signUp_ui_functions.popups(self, "add_class_success")
+	def toggle_add_class_pass(self, maxHeight, enable):
+		_translate = QtCore.QCoreApplication.translate
+		if enable:
+			# GET Height
+			height = self.height()
+			maxExtend = maxHeight
+			standard = 315
+			base_top = int()
+			extend_top = int()
+			# SET MAX Height
+			if height == 315:
+				heightExtended = maxExtend
+				base_top = 226
+				extend_top = 200
+				self.ui.course_add_pass_btn.setText('Cancel')
+				self.ui.course_password.setDisabled(False)
+				self.ui.course_confirm_password.setDisabled(False)
+
+			else:
+				heightExtended = standard
+				base_top = 200
+				extend_top = 226
+				self.ui.course_add_pass_btn.setText('Add Password')
+				self.ui.course_password.setDisabled(True)
+				self.ui.course_confirm_password.setDisabled(True)
+				self.ui.course_password.clear()
+				self.ui.course_confirm_password.clear()
+			
+			# ANIMATION
+			self.animation = QPropertyAnimation(self, b'geometry')
+			self.animation.setDuration(300)
+			self.animation.setStartValue(QRect(426, base_top, 513, height))
+			self.animation.setEndValue(QRect(426, extend_top, 513, heightExtended))
+			self.animation.start()
+			if heightExtended == standard:
+				return True
 
 	def get_classes(self):
 		database = db(id_number=current_user[1])
@@ -463,18 +512,80 @@ class teacher_dash_ui_functs(teacher_dashboard):
 		class_code = self.ui.update_course_code.text()
 		class_expire_date = self.ui.update_course_expire_date.date().toString('yyyy-MM-dd')
 		class_expire_time = self.ui.update_course_expire_time.text()
-
+		class_pass = self.ui.update_course_password.text()
+		class_confirm_pass = self.ui.update_course_confirm_password.text()
 
 		time = datetime.strptime(class_expire_time, "%I:%M %p")
 		new_format_time = datetime.strftime(time, "%H:%M")
 		class_expire_datetime = class_expire_date + " " +  new_format_time
-
-		if status == 0 and  current_exp_datetime != class_expire_datetime:
-			database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num, is_active=False)
+		database = None
+		if class_pass and class_confirm_pass:
+			if  class_pass != class_confirm_pass:
+				login_signUp_ui_functions.popups(self, 'password_error')
+				self.ui.update_course_password.clear()
+				self.ui.update_course_confirm_password.clear()
+			else:
+				if status == 0 and  current_exp_datetime != class_expire_datetime:
+					database = db(course_name=class_name, course_code=class_code, 
+									expire_date=class_expire_datetime, id_number=id_num, is_active=False, has_pass=True, password=class_confirm_pass)
+				else:
+					database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num, has_pass=True, password=class_confirm_pass)
 		else:
-			database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num)
-		
-		database.update_class()
-		login_signUp_ui_functions.popups(self, "class_updated")
+			if status == 0 and  current_exp_datetime != class_expire_datetime:
+				database = db(course_name=class_name, course_code=class_code, 
+							expire_date=class_expire_datetime, id_number=id_num, is_active=False, has_pass=False)
+			else:
+				database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num, has_pass=False)
 
+
+		if database:
+			database.update_class()
+			login_signUp_ui_functions.popups(self, "class_updated")
+			self.close()
+
+	def remove_class_password(self, id_num):
+		reply = QMessageBox.question(self, 'Log Out', 'Are you sure you want to Remove Password?',
+				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+		if reply == QMessageBox.Yes:
+			database = db(id_number = id_num, current_id=current_user[1])
+			database.remove_class_password()
+			login_signUp_ui_functions.popups(self, "update_success")
+
+	def toggle_update_class_pass(self, maxHeight, enable):
+			_translate = QtCore.QCoreApplication.translate
+			if enable:
+				# GET Height
+				height = self.height()
+				maxExtend = maxHeight
+				standard = 330
+				base_top = int()
+				extend_top = int()
+				# SET MAX Height
+				if height == 330:
+					heightExtended = maxExtend
+					base_top = 218
+					extend_top = 200
+					self.ui.update_pass_btn.setText('Cancel')
+					self.ui.update_course_password.setDisabled(False)
+					self.ui.update_course_confirm_password.setDisabled(False)
+
+				else:
+					heightExtended = standard
+					base_top = 200
+					extend_top = 218
+					self.ui.update_pass_btn.setText('Update Password')
+					self.ui.update_course_password.setDisabled(True)
+					self.ui.update_course_confirm_password.setDisabled(True)
+					self.ui.update_course_password.clear()
+					self.ui.update_course_confirm_password.clear()
+				
+				# ANIMATION
+				self.animation = QPropertyAnimation(self, b'geometry')
+				self.animation.setDuration(300)
+				self.animation.setStartValue(QRect(407, base_top, 551, height))
+				self.animation.setEndValue(QRect(407, extend_top, 551, heightExtended))
+				self.animation.start()
+				if heightExtended == standard:
+					return True
 

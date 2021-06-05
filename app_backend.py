@@ -9,7 +9,8 @@ class db(object):
 						gender=None, username=None, password=None,
 						current_id=None, unique_id=None,
 						course_name=None, course_code=None, created_on=None,
-						expire_date=None, is_active=None, lecturer=None, current_datetime = None):
+						expire_date=None, is_active=None, lecturer=None, current_datetime = None,
+						has_pass=None):
 
 		self.unique_id = unique_id
 		self.id_number = id_number
@@ -28,6 +29,7 @@ class db(object):
 		self.current_datetime = current_datetime
 		self.is_active = is_active
 		self.lecturer = lecturer
+		self.has_pass = has_pass
 
 
 
@@ -49,7 +51,6 @@ class db(object):
 		except Exception as e:
 			print(e)
 		
-
 	def update_student(self):
 		cursor = conn.cursor()
 		hashed_pass = self.sec.to_hash(self.password)
@@ -121,7 +122,6 @@ class db(object):
 		except Error as e:
 			print(e)
 		
-
 	def login_student_back(self):
 		cursor = conn.cursor()
 		sql = """SELECT * FROM student WHERE id = '{}'""".format(self.unique_id)
@@ -247,16 +247,24 @@ class db(object):
 		else:
 			return False
 
+###########################################  TEACHER CLASS  PART ################################
+
 	def add_class(self):
 		cursor = conn.cursor()
-		new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer)
 
-		sql = """
+		if not self.has_pass:
+			new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer)
+			sql = """
 				INSERT INTO course (course_name, course_code, created_on, expire_date, is_active, lecturer)
 				VALUES(?,?,julianday('now'),julianday(?),?,?)  
 			"""
-
-		
+		else:
+			hashed_pass = self.sec.to_hash(self.password)
+			new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer, hashed_pass)
+			sql = """
+				INSERT INTO course (course_name, course_code, created_on, expire_date, is_active, lecturer, password)
+				VALUES(?,?,julianday('now'),julianday(?),?,?,?)  
+			"""
 		try:
 			cursor.execute(sql, new_class)
 			conn.commit()
@@ -284,7 +292,7 @@ class db(object):
 		sql = """ SELECT c.id, c.course_name, c.course_code, date(c.expire_date),
 				 time(c.expire_date), c.is_active,  date(c.created_on),
 				 time(c.created_on),  date(c.updated_on),
-				 time(c.updated_on)
+				 time(c.updated_on), c.password
 				 	FROM (course as c LEFT JOIN lecturer as l) 
 				 		WHERE c.id = '{}'""".format(self.id_number)
 
@@ -309,18 +317,43 @@ class db(object):
 
 	def update_class(self):
 		cursor = conn.cursor()
-		update_class = (self.course_name, self.course_code, self.expire_date, self.id_number )
+		if not self.has_pass:
+			update_class = (self.course_name, self.course_code, self.expire_date, self.id_number )
+			if self.is_active == False:
+				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?),
+					updated_on = julianday('now'), is_active = True
+	                WHERE id = ?"""
+			else:
+				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?), updated_on = julianday('now')
+	                WHERE id = ?"""
 		
-		if self.is_active == False:
-			sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?),
-				updated_on = julianday('now'), is_active = True
-                WHERE id = ?"""
 		else:
-			sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?), updated_on = julianday('now')
-                WHERE id = ?"""
+			hashed_pass = self.sec.to_hash(self.password)
+			update_class = (self.course_name, self.course_code, self.expire_date, hashed_pass, self.id_number)
+			if self.is_active == False:
+				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?),
+					updated_on = julianday('now'), is_active = True, password= ?
+	                WHERE id = ?"""
+			else:
+				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?), updated_on = julianday('now'),
+						password = ?
+	                WHERE id = ?"""
+			pass
 
 		try:
 			cursor.execute(sql, update_class)
+			conn.commit()
+		except Exception as e:
+			print(e)
+
+	def remove_class_password(self):
+		cursor = conn.cursor()
+		class_field = (self.id_number, self.current_id)
+
+		sql = """UPDATE course SET password = Null WHERE id = ? AND lecturer = ?"""
+
+		try:
+			cursor.execute(sql, class_field)
 			conn.commit()
 		except Exception as e:
 			print(e)
@@ -338,7 +371,3 @@ class db(object):
 		else:
 			return False
 
-#[(7, 'Sample Course', 'CSC123', 2459364.868648935, 2459417.4583333335, 1, '2018-0001', None, '2021-07-21', '23:00:00')]
-'''database = db(current_datetime='2021-06-03 02:00')
-x = database.check_class_expire()
-print(x)'''
