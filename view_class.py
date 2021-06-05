@@ -9,6 +9,19 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+class DateEdit(QtWidgets.QDateEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent, calendarPopup=True)
+        self._today_button = QtWidgets.QPushButton(self.tr("Today"))
+        self._today_button.clicked.connect(self._update_today)
+        self.calendarWidget().layout().addWidget(self._today_button)
+
+    @QtCore.pyqtSlot()
+    def _update_today(self):
+        self._today_button.clearFocus()
+        today = QtCore.QDate.currentDate()
+        self.calendarWidget().setSelectedDate(today)
+
 
 
 class Ui_view_class(object):
