@@ -10,7 +10,7 @@ class db(object):
 						current_id=None, unique_id=None,
 						course_name=None, course_code=None, created_on=None,
 						expire_date=None, is_active=None, lecturer=None, current_datetime = None,
-						has_pass=None):
+						has_pass=None, section=None):
 
 		self.unique_id = unique_id
 		self.id_number = id_number
@@ -19,6 +19,7 @@ class db(object):
 		self.username = username
 		self.password = password
 		self.gender = gender
+		self.section = section
 		self.current_id = current_id
 		self.sec = secrets.Secreto()
 
@@ -32,16 +33,30 @@ class db(object):
 		self.has_pass = has_pass
 
 
+########################################### GENERAL ITEMS FOR UI ##########################################################
+	def get_sections(self):
+		cursor = conn.cursor()
+		section = list()
+		sql = """ SELECT name FROM sections """ 
+
+		try:
+			cursor.execute(sql)
+			display = cursor.fetchall()
+			for item in display:
+				section.append(item[0])
+			return section
+		except Exception as e:
+			print(e)
 
 
-
+########################################### STUDENTS PART #################################################################
 	def add_student(self):
 		cursor = conn.cursor()
 		hashed_pass = self.sec.to_hash(self.password)
-		student = (self.id_number, self.first_name, self.last_name, self.gender, self.username, hashed_pass,)
+		student = (self.id_number, self.first_name, self.last_name, self.gender, self.username, hashed_pass, self.section)
 		sql = """
-				INSERT INTO student (id_number, first_name, last_name, gender, username, password)
-				VALUES(?,?,?,?,?,?)  
+				INSERT INTO student (id_number, first_name, last_name, gender, username, password,section)
+				VALUES(?,?,?,?,?,?,?)  
 			""" 
 
 		try:
@@ -53,15 +68,14 @@ class db(object):
 		
 	def update_student(self):
 		cursor = conn.cursor()
-		hashed_pass = self.sec.to_hash(self.password)
 		student = (self.id_number, self.first_name, 
                 								self.last_name, 
                 								self.gender, 
-                								self.username, 
-                								hashed_pass,
-                								self.current_id,)
+                								self.username,
+                								self.section, 
+                								self.current_id)
 		sql = """UPDATE student SET id_number= ?, first_name = ?,
-		 					last_name = ?, gender = ?, username = ?, password = ?
+		 					last_name = ?, gender = ?, username = ?, section = ?
                 WHERE id_number = ?""" 
 
 		try:
@@ -133,7 +147,7 @@ class db(object):
 		else:
 			return False
 
-########################################### TEACHER PART #######################################33
+########################################### TEACHER PART ##################################################################
 	def add_teacher(self):
 		cursor = conn.cursor()
 
@@ -247,23 +261,23 @@ class db(object):
 		else:
 			return False
 
-###########################################  TEACHER CLASS  PART ################################
+###########################################  TEACHER CLASS  PART ##########################################################
 
 	def add_class(self):
 		cursor = conn.cursor()
 
 		if not self.has_pass:
-			new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer)
+			new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer, self.section)
 			sql = """
-				INSERT INTO course (course_name, course_code, created_on, expire_date, is_active, lecturer)
-				VALUES(?,?,julianday('now'),julianday(?),?,?)  
+				INSERT INTO course (course_name, course_code, created_on, expire_date, is_active, lecturer, section)
+				VALUES(?,?,julianday('now', 'localtime') ,julianday(?),?,?,?)  
 			"""
 		else:
 			hashed_pass = self.sec.to_hash(self.password)
-			new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer, hashed_pass)
+			new_class = (self.course_name, self.course_code, self.expire_date, self.is_active, self.lecturer, hashed_pass, self.section)
 			sql = """
-				INSERT INTO course (course_name, course_code, created_on, expire_date, is_active, lecturer, password)
-				VALUES(?,?,julianday('now'),julianday(?),?,?,?)  
+				INSERT INTO course (course_name, course_code, created_on, expire_date, is_active, lecturer, password, section)
+				VALUES(?,?,julianday('now', 'localtime'),julianday(?),?,?,?,?)  
 			"""
 		try:
 			cursor.execute(sql, new_class)
@@ -292,7 +306,7 @@ class db(object):
 		sql = """ SELECT c.id, c.course_name, c.course_code, date(c.expire_date),
 				 time(c.expire_date), c.is_active,  date(c.created_on),
 				 time(c.created_on),  date(c.updated_on),
-				 time(c.updated_on), c.password
+				 time(c.updated_on), c.password, c.section
 				 	FROM (course as c LEFT JOIN lecturer as l) 
 				 		WHERE c.id = '{}'""".format(self.id_number)
 
@@ -318,25 +332,25 @@ class db(object):
 	def update_class(self):
 		cursor = conn.cursor()
 		if not self.has_pass:
-			update_class = (self.course_name, self.course_code, self.expire_date, self.id_number )
+			update_class = (self.course_name, self.course_code, self.expire_date, self.section, self.id_number)
 			if self.is_active == False:
 				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?),
-					updated_on = julianday('now'), is_active = True
+					updated_on = julianday('now','localtime'), is_active = True, section = ?
 	                WHERE id = ?"""
 			else:
-				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?), updated_on = julianday('now')
-	                WHERE id = ?"""
+				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?),
+				 updated_on = julianday('now','localtime'), section = ? WHERE id = ?"""
 		
 		else:
 			hashed_pass = self.sec.to_hash(self.password)
-			update_class = (self.course_name, self.course_code, self.expire_date, hashed_pass, self.id_number)
+			update_class = (self.course_name, self.course_code, self.expire_date, hashed_pass, self.section, self.id_number)
 			if self.is_active == False:
 				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?),
-					updated_on = julianday('now'), is_active = True, password= ?
+					updated_on = julianday('now','localtime'), is_active = True, password= ?, section = ?
 	                WHERE id = ?"""
 			else:
-				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?), updated_on = julianday('now'),
-						password = ?
+				sql = """UPDATE course SET course_name= ?, course_code = ?, expire_date = julianday(?), updated_on = julianday('now','localtime'),
+						password = ?, section = ?
 	                WHERE id = ?"""
 			pass
 
@@ -371,3 +385,19 @@ class db(object):
 		else:
 			return False
 
+
+'''class_name = 'Sample Course'
+class_code = 'CSC123'
+class_expire_datetime = '2021-06-06 13:06'
+lecturer = '2018-0001'
+section = 1
+
+database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True,
+								 lecturer=lecturer, has_pass=False, section=section)
+
+database2 = db(id_number=8)
+print(database2.view_select_class())
+
+
+#database.add_class()
+#Sample Course CSC123 2021-06-06 13:06 True 2018-0001 1'''

@@ -116,6 +116,11 @@ class login_signUp_ui_functions(login_signUp_window):
 		else:
 			login_signUp_ui_functions.addStudent(self)
 
+	def get_sections(self):
+		database = db()
+		sections = database.get_sections()
+		return sections
+			
 	def addStudent(self):
 		fname = self.ui.student_fname.text().upper()
 		lname = self.ui.student_lname.text().upper()
@@ -123,16 +128,23 @@ class login_signUp_ui_functions(login_signUp_window):
 		gender = self.ui.student_gender.currentText().upper()
 		username = self.ui.student_username.text()
 		password = self.ui.student_password.text()
+		section = self.ui.student_section.currentText()
+		if section == 'Rizal':
+			section = 1
+		elif section == 'Bonifacio':
+			section = 2
+		elif section == 'Aguinaldo':
+			section = 3
 
 		
 
 		database = db(id_number = id_num, first_name = fname, last_name = lname, gender = gender,
-					 username = username, password=password)
+					 username = username, password=password, section = section)
 
 		database.add_student()
-
 		login_signUp_ui_functions.popups(self, "student_success")
-
+		login_signUp_ui_functions.clear_signUp_fields(self, 'student')
+		
 	def teacher_signup_validations(self):
 		
 		id_num = self.ui.teacher_id.text()
@@ -161,7 +173,27 @@ class login_signUp_ui_functions(login_signUp_window):
 
 		else:
 			login_signUp_ui_functions.addTeacher(self)
-			
+
+	def clear_signUp_fields(self, page):
+		if page == 'student':
+			self.ui.student_fname.clear()
+			self.ui.student_lname.clear()
+			self.ui.student_id.clear()
+			self.ui.student_gender.setCurrentIndex(0)
+			self.ui.student_username.clear()
+			self.ui.student_password.clear()
+			self.ui.student_confirm_pass_signUp.clear()
+			self.ui.student_section.setCurrentIndex(0)
+		elif page == 'teacher':
+			self.ui.teacher_fname.clear()
+			self.ui.teacher_lname.clear()
+			self.ui.teacher_id.clear()
+			self.ui.teacher_gender.setCurrentIndex(0)
+			self.ui.teacher_username.clear()
+			self.ui.teacher_password.clear()
+			self.ui.teacher_confirm_pass_signUp.clear()
+			self.ui.login_stackedWidget.setCurrentWidget(self.ui.login_teacher_page)			
+	
 	def addTeacher(self):
 		fname = self.ui.teacher_fname.text().upper()
 		lname = self.ui.teacher_lname.text().upper()
@@ -176,6 +208,7 @@ class login_signUp_ui_functions(login_signUp_window):
 		database.add_teacher()
 
 		login_signUp_ui_functions.popups(self, "teacher_success")
+		login_signUp_ui_functions.clear_signUp_fields(self, 'teacher')
 
 	def login_student(self):
 		current_user.clear()
@@ -243,6 +276,7 @@ class student_dash_ui_functs(student_dashboard):
 
 		gender = self.ui.student_gender_edit.setCurrentIndex(index)
 		username = self.ui.student_username_edit.setText(current_user[5])
+		section = self.ui.student_section_edit.setCurrentIndex(current_user[7])
 
 	def student_edit_validations(self):
 		
@@ -271,15 +305,10 @@ class student_dash_ui_functs(student_dashboard):
 		id_num = self.ui.student_id_edit.text()
 		gender = self.ui.student_gender_edit.currentText().upper()
 		username = self.ui.student_username_edit.text()
-		password = self.ui.student_password_edit.text()
-
-		if not password:
-			password = current_user[6]
-
-		details = id_num, fname, lname, gender, username, password
+		section  =self.ui.student_section_edit.currentIndex()
 
 		database = db(id_number = id_num, first_name = fname, last_name = lname, gender = gender, username = username, 
-					password = password, current_id = current_user[1])
+					section = section, current_id = current_user[1])
 
 		login_back = db(unique_id = current_user[0])
 
@@ -292,8 +321,6 @@ class student_dash_ui_functs(student_dashboard):
 			current_user.append(item)
 
 		login_signUp_ui_functions.popups(self, "update_success")
-		print(current_user)
-
 		self.disable_student_edit()
 
 	def student_update_pass(self):
@@ -439,6 +466,7 @@ class teacher_dash_ui_functs(teacher_dashboard):
 		time = datetime.strptime(class_expire_time, "%I:%M %p")
 		new_format_time = datetime.strftime(time, "%H:%M")
 		class_expire_datetime = class_expire_date + " " +  new_format_time
+		section = self.ui.course_section.currentIndex()
 		database = None
 		if class_pass and class_confirm_pass:
 			if  class_pass != class_confirm_pass:
@@ -447,11 +475,11 @@ class teacher_dash_ui_functs(teacher_dashboard):
 				self.ui.course_confirm_password.clear()
 			else:
 				database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True,
-								 lecturer=current_user[1], has_pass=True, password =class_confirm_pass)
+								 lecturer=current_user[1], has_pass=True, password =class_confirm_pass, section=section)
 
 		else:
 			database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True,
-								 lecturer=current_user[1], has_pass=False)
+								 lecturer=current_user[1], has_pass=False, section=section)
 		
 		if database:
 			database.add_class()
@@ -464,13 +492,13 @@ class teacher_dash_ui_functs(teacher_dashboard):
 			# GET Height
 			height = self.height()
 			maxExtend = maxHeight
-			standard = 315
+			standard = 326
 			base_top = int()
 			extend_top = int()
 			# SET MAX Height
-			if height == 315:
+			if height == 326:
 				heightExtended = maxExtend
-				base_top = 226
+				base_top = 220
 				extend_top = 200
 				self.ui.course_add_pass_btn.setText('Cancel')
 				self.ui.course_password.setDisabled(False)
@@ -479,7 +507,7 @@ class teacher_dash_ui_functs(teacher_dashboard):
 			else:
 				heightExtended = standard
 				base_top = 200
-				extend_top = 226
+				extend_top = 220
 				self.ui.course_add_pass_btn.setText('Add Password')
 				self.ui.course_password.setDisabled(True)
 				self.ui.course_confirm_password.setDisabled(True)
@@ -489,8 +517,8 @@ class teacher_dash_ui_functs(teacher_dashboard):
 			# ANIMATION
 			self.animation = QPropertyAnimation(self, b'geometry')
 			self.animation.setDuration(300)
-			self.animation.setStartValue(QRect(426, base_top, 513, height))
-			self.animation.setEndValue(QRect(426, extend_top, 513, heightExtended))
+			self.animation.setStartValue(QRect(384, base_top, 598, height))
+			self.animation.setEndValue(QRect(384, extend_top, 598, heightExtended))
 			self.animation.start()
 			if heightExtended == standard:
 				return True
@@ -498,7 +526,6 @@ class teacher_dash_ui_functs(teacher_dashboard):
 	def get_classes(self):
 		database = db(id_number=current_user[1])
 		display = database.view_all_class()
-
 		return display
 
 	def del_class(self, id_num):
@@ -514,6 +541,7 @@ class teacher_dash_ui_functs(teacher_dashboard):
 		class_expire_time = self.ui.update_course_expire_time.text()
 		class_pass = self.ui.update_course_password.text()
 		class_confirm_pass = self.ui.update_course_confirm_password.text()
+		section = self.ui.update_course_section.currentIndex()
 
 		time = datetime.strptime(class_expire_time, "%I:%M %p")
 		new_format_time = datetime.strftime(time, "%H:%M")
@@ -527,15 +555,19 @@ class teacher_dash_ui_functs(teacher_dashboard):
 			else:
 				if status == 0 and  current_exp_datetime != class_expire_datetime:
 					database = db(course_name=class_name, course_code=class_code, 
-									expire_date=class_expire_datetime, id_number=id_num, is_active=False, has_pass=True, password=class_confirm_pass)
+									expire_date=class_expire_datetime, id_number=id_num,
+									 is_active=False, has_pass=True, password=class_confirm_pass, section=section)
 				else:
-					database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num, has_pass=True, password=class_confirm_pass)
+					database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime,
+									 id_number=id_num, has_pass=True, password=class_confirm_pass, section=section)
 		else:
 			if status == 0 and  current_exp_datetime != class_expire_datetime:
 				database = db(course_name=class_name, course_code=class_code, 
-							expire_date=class_expire_datetime, id_number=id_num, is_active=False, has_pass=False)
+							expire_date=class_expire_datetime, id_number=id_num,
+							 is_active=False, has_pass=False, section=section)
 			else:
-				database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num, has_pass=False)
+				database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, id_number=id_num,
+								 has_pass=False, section=section)
 
 
 		if database:
@@ -558,22 +590,22 @@ class teacher_dash_ui_functs(teacher_dashboard):
 				# GET Height
 				height = self.height()
 				maxExtend = maxHeight
-				standard = 330
+				standard = 384
 				base_top = int()
 				extend_top = int()
 				# SET MAX Height
-				if height == 330:
+				if height == 384:
 					heightExtended = maxExtend
-					base_top = 218
-					extend_top = 200
+					base_top = 190
+					extend_top = 170
 					self.ui.update_pass_btn.setText('Cancel')
 					self.ui.update_course_password.setDisabled(False)
 					self.ui.update_course_confirm_password.setDisabled(False)
 
 				else:
 					heightExtended = standard
-					base_top = 200
-					extend_top = 218
+					base_top = 170
+					extend_top = 190
 					self.ui.update_pass_btn.setText('Update Password')
 					self.ui.update_course_password.setDisabled(True)
 					self.ui.update_course_confirm_password.setDisabled(True)
@@ -583,8 +615,8 @@ class teacher_dash_ui_functs(teacher_dashboard):
 				# ANIMATION
 				self.animation = QPropertyAnimation(self, b'geometry')
 				self.animation.setDuration(300)
-				self.animation.setStartValue(QRect(407, base_top, 551, height))
-				self.animation.setEndValue(QRect(407, extend_top, 551, heightExtended))
+				self.animation.setStartValue(QRect(412, base_top, 542, height))
+				self.animation.setEndValue(QRect(412, extend_top, 542, heightExtended))
 				self.animation.start()
 				if heightExtended == standard:
 					return True

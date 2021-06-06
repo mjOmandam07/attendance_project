@@ -50,7 +50,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="sign_up_page">
      <widget class="QLabel" name="label_2">
@@ -378,6 +378,40 @@
          <enum>QLineEdit::Password</enum>
         </property>
        </widget>
+       <widget class="QLabel" name="label_55">
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>210</y>
+          <width>81</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>Montserrat</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Section</string>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="student_section">
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>233</y>
+          <width>111</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <item>
+         <property name="text">
+          <string>Select</string>
+         </property>
+        </item>
+       </widget>
        <zorder>label_37</zorder>
        <zorder>student_username</zorder>
        <zorder>student_id</zorder>
@@ -394,6 +428,8 @@
        <zorder>label_36</zorder>
        <zorder>label_53</zorder>
        <zorder>student_confirm_pass_signUp</zorder>
+       <zorder>label_55</zorder>
+       <zorder>student_section</zorder>
       </widget>
       <widget class="QWidget" name="page_10">
        <widget class="QLabel" name="label_38">

@@ -40,12 +40,15 @@ class login_signUp_window(QMainWindow):
 
 
 		login_signUp_ui_functions.buttons(self)
+			
+		self.load_sections()
 
 		self.ui.student_signUp.setDisabled(True)
 		self.ui.student_fname.textChanged['QString'].connect(self.disable_student_SignUp)
 		self.ui.student_lname.textChanged['QString'].connect(self.disable_student_SignUp)
 		self.ui.student_id.textChanged['QString'].connect(self.disable_student_SignUp)
 		self.ui.student_gender.currentIndexChanged['QString'].connect(self.disable_student_SignUp)
+		self.ui.student_section.currentIndexChanged['QString'].connect(self.disable_student_SignUp)
 		self.ui.student_username.textChanged['QString'].connect(self.disable_student_SignUp)
 		self.ui.student_password.textChanged['QString'].connect(self.disable_student_SignUp)
 		self.ui.student_confirm_pass_signUp.textChanged['QString'].connect(self.disable_student_SignUp)
@@ -68,6 +71,10 @@ class login_signUp_window(QMainWindow):
 		self.ui.teacher_login_password.textChanged['QString'].connect(self.disable_teacher_login)
 		self.show()
 
+	def load_sections(self):
+		sections = login_signUp_ui_functions.get_sections(self)
+		for item in sections:
+			self.ui.student_section.addItem(item)
 
 	def login_signup_toggler(self):
 		btnWidget = self.sender()
@@ -126,11 +133,16 @@ class login_signUp_window(QMainWindow):
 		else:
 			gender = self.ui.student_gender.currentText()
 
+		if self.ui.student_section.currentText() == 'Select':
+			section = None
+		else:
+			section = self.ui.student_section.currentText()
+
 		username = self.ui.student_username.text()
 		password = self.ui.student_password.text()
 		confirm_password = self.ui.student_confirm_pass_signUp.text()
 
-		if fname and lname and id_num and gender and username and password and confirm_password:
+		if fname and lname and id_num and gender and username and password and confirm_password and section:
 			self.ui.student_signUp.setDisabled(False)
 		else:
 			self.ui.student_signUp.setDisabled(True)
@@ -155,7 +167,7 @@ class login_signUp_window(QMainWindow):
 
 	def to_student_dashboard(self):
 		global main_window
-		main_windw = student_dashboard()
+		main_window = student_dashboard()
 		main_window.show()
 		self.close()
 
@@ -182,14 +194,21 @@ class student_dashboard(QMainWindow):
 		self.ui.student_lname_edit.textChanged['QString'].connect(self.disable_student_edit)
 		self.ui.student_id_edit.textChanged['QString'].connect(self.disable_student_edit)
 		self.ui.student_gender_edit.currentIndexChanged['QString'].connect(self.disable_student_edit)
+		self.ui.student_section_edit.currentIndexChanged['QString'].connect(self.disable_student_edit)
 		self.ui.student_username_edit.textChanged['QString'].connect(self.disable_student_edit)
 		
+		self.load_sections()
 		self.show()
 
 
+	def load_sections(self):
+		sections = login_signUp_ui_functions.get_sections(self)
+		for item in sections:
+			self.ui.student_section_edit.addItem(item)
+
 	def student_dash_buttons(self):
-		btnWidget = self.sender() # RETURNS THE BUTTON PRESSED
-		btn_name = btnWidget.objectName() # RETURNS THE 'NAME' OF THE BUTTON PRESSED
+		btnWidget = self.sender()
+		btn_name = btnWidget.objectName()
 
 
 		if btn_name == 'student_home':
@@ -212,30 +231,36 @@ class student_dashboard(QMainWindow):
 				current_user.clear()
 				self.close()
 			
-
 	def disable_student_edit(self):
 		self.ui.current_user_name.setText(current_user[2])
 		fname = self.ui.student_fname_edit.text().upper()
 		lname = self.ui.student_lname_edit.text().upper()
 		id_num = self.ui.student_id_edit.text()
+		section_name =  self.ui.student_section_edit.currentText()
 		if self.ui.student_gender_edit.currentText() == 'Select':
 			gender = None
 		else:
 			gender = self.ui.student_gender_edit.currentText().upper()
 
+		if section_name == 'Select':
+			section = None
+		elif section_name == 'Rizal':
+			section = 1
+		elif section_name == 'Bonifacio':
+			section = 2
+		elif section_name == 'Aguinaldo':
+			section = 3
+		else:
+			section = self.ui.student_section_edit.currentIndex()
+
 		username = self.ui.student_username_edit.text()
-
-
 
 		if (fname == current_user[2] and lname == current_user[3] 
 				and id_num == current_user[1] and gender == current_user[4]
-					and username == current_user[5]):
+					and username == current_user[5] and section == current_user[7]):
 				self.ui.student_edit.setDisabled(True)
-
-		elif fname and lname and id_num and gender and username:
+		elif fname and lname and id_num and gender and username and section_name and section != None:
 			self.ui.student_edit.setDisabled(False)
-
-			
 		else:
 			self.ui.student_edit.setDisabled(True)
 
@@ -265,7 +290,7 @@ class teacher_dashboard(QMainWindow):
 		self.ui.treeWidget.itemClicked['QTreeWidgetItem*', 'int'].connect(
             lambda: teacher_dash_ui_functs.get_selected_student(self))
 
-		self.teacher_classes()
+		self.teacher_classes(None)
 		thread_starters.start_check_class(self, 'start')
 
 		self.show()
@@ -274,10 +299,10 @@ class teacher_dashboard(QMainWindow):
 		if self.ui.stackedWidget.currentWidget() == self.ui.teacher_home_page:
 			if status:
 				self.ui.top_notify.show()
-				self.teacher_classes()
+				self.teacher_classes('refresh_screen')
 			elif not status and expired_class:
 				self.ui.top_notify.show()
-				self.teacher_classes()
+				self.teacher_classes('refresh_screen')
 				expired_class.clear()
 				
 			elif not status and not expired_class:
@@ -335,23 +360,30 @@ class teacher_dashboard(QMainWindow):
 		self.main.show()
 		view_class_window.display_details(self, id_num)
 
-	def teacher_classes(self):
+	def teacher_classes(self, command):
 		classes = teacher_dash_ui_functs.get_classes(self)
-		if classes and not widgets:
+		if classes and not widgets and command != 'refresh_screen':
 			self.teacher_home_page(1)
 			exec(dynamic.clear_scrollArea())
 			for item in classes:
 				exec(dynamic.add_widget())
 			for w in self.ui.teacher_home_page.findChildren(QScrollArea):
 				w = w.objectName()
-			widgets.append(w)	
-		elif classes and widgets:
+			widgets.append(w)
+		elif classes and widgets and command != 'refresh_screen':
 			exec(dynamic.clear_scrollArea())
 			for item in classes:
 				exec(dynamic.add_widget())
-		else:
+		elif (not classes and  widgets) or (not classes and not widgets) and command != 'refresh_screen':
 			widgets.clear()
 			self.teacher_home_page(0)
+		elif command == 'refresh_screen':
+			if classes and widgets:
+				exec(dynamic.clear_scrollArea())
+				for item in classes:
+					exec(dynamic.add_widget())
+			else:
+				pass
 
 	def view_class_buttons(self):
 		btnWidget = self.sender()
@@ -453,13 +485,23 @@ class add_class_window(QMainWindow):
 		self.ui.course_code.textChanged['QString'].connect(self.disable_add_class)
 		self.ui.course_password.textChanged['QString'].connect(self.disable_add_class)
 		self.ui.course_confirm_password.textChanged['QString'].connect(self.disable_add_class)
+		self.ui.course_section.currentIndexChanged['QString'].connect(self.disable_add_class)
 		self.ui.course_add_pass_btn.clicked.connect(self.disable_when_pass)
 		self.ui.add_course.setDisabled(True)
 
+		time_today = QtCore.QTime.currentTime()
+		self.ui.course_expire_time.setTime(time_today)
+
 		global add_pass
 		add_pass = False
+		self.load_sections()
 		self.show()
-	
+
+	def load_sections(self):
+		sections = login_signUp_ui_functions.get_sections(self)
+		for item in sections:
+			self.ui.course_section.addItem(item)
+
 	def disable_when_pass(self):
 		global add_pass
 		add_pass = True
@@ -470,6 +512,7 @@ class add_class_window(QMainWindow):
 			
 	def store_data(self):
 		teacher_dash_ui_functs.add_new_class(self)
+		main_window.teacher_classes(None)
 
 	def disable_add_class(self):
 		global add_pass
@@ -477,13 +520,14 @@ class add_class_window(QMainWindow):
 		course_code = self.ui.course_code.text()
 		class_pass = self.ui.course_password.text()
 		class_confirm_pass = self.ui.course_confirm_password.text()
+		section = self.ui.course_section.currentIndex()
 		if add_pass == True:
-			if course_name and course_code and class_pass and class_confirm_pass:
+			if course_name and course_code and class_pass and class_confirm_pass and section != 0:
 				self.ui.add_course.setDisabled(False)
 			else:
 				self.ui.add_course.setDisabled(True)
 		else:
-			if course_name and course_code:
+			if course_name and course_code and section != 0:
 				self.ui.add_course.setDisabled(False)
 			else:
 				self.ui.add_course.setDisabled(True)
@@ -508,9 +552,11 @@ class view_class_window(QMainWindow):
 		self.ui.update_course_expire_date.dateChanged.connect(self.disable_update_class)
 		self.ui.update_course_expire_time.timeChanged.connect(self.disable_update_class)
 		self.ui.update_course_password.textChanged['QString'].connect(self.disable_update_class)
+		self.ui.update_course_section.currentIndexChanged['QString'].connect(self.disable_update_class)
 		self.ui.update_course_confirm_password.textChanged['QString'].connect(self.disable_update_class)
 		self.ui.update_course.setDisabled(True)
-
+		
+		
 		self.ui.update_pass_btn.clicked.connect(self.disable_when_pass)
 		self.ui.remove_pass_btn.clicked.connect(self.remove_class_pass)
 
@@ -520,7 +566,13 @@ class view_class_window(QMainWindow):
 		global update_pass
 		update_pass = False
 
+		self.load_sections()
 		self.show()
+
+	def load_sections(self):
+		sections = login_signUp_ui_functions.get_sections(self)
+		for item in sections:
+			self.ui.update_course_section.addItem(item)
 		
 	def display_details(self, id_num):
 		global class_id
@@ -546,6 +598,7 @@ class view_class_window(QMainWindow):
 		status = display[5]
 
 		password = display[10]
+		section = display[11]
 
 		if password:
 			self.main.ui.remove_pass_btn.setDisabled(False)
@@ -575,6 +628,7 @@ class view_class_window(QMainWindow):
 		self.main.ui.update_course_code.setText(code)
 		self.main.ui.update_course_expire_date.setDate(expire_datetime[0])
 		self.main.ui.update_course_expire_time.setTime(expire_datetime[1])
+		self.main.ui.update_course_section.setCurrentIndex(section)
 
 	def reformat_datetime(self, time, date, for_top):
 		current_date = QDate.fromString(date, 'yyyy-MM-dd')
@@ -598,13 +652,13 @@ class view_class_window(QMainWindow):
 			teacher_dash_ui_functs.del_class(self, class_id)
 
 		self.close()
-		main_window.teacher_classes()
+		main_window.teacher_classes(None)
 	
 	def disable_when_pass(self):
 		global update_pass
 		update_pass = True
 		self.disable_update_class()
-		if teacher_dash_ui_functs.toggle_update_class_pass(self, 420, True):
+		if teacher_dash_ui_functs.toggle_update_class_pass(self, 474, True):
 			update_pass = False
 			self.disable_update_class()
 
@@ -620,6 +674,7 @@ class view_class_window(QMainWindow):
 		current_exp_time = display[4]
 		current_time = datetime.strptime(current_exp_time, "%H:%M:%S")
 		current_time = datetime.strftime(current_time, "%H:%M")
+		current_section = display[11]
 
 		course_name = self.ui.update_course_name.text()
 		course_code = self.ui.update_course_code.text()
@@ -629,23 +684,26 @@ class view_class_window(QMainWindow):
 		class_expire_time = self.ui.update_course_expire_time.text()
 		class_pass = self.ui.update_course_password.text()
 		class_confirm_pass = self.ui.update_course_confirm_password.text()
+		section = self.ui.update_course_section.currentIndex()
+
 
 		time = datetime.strptime(class_expire_time, "%I:%M %p")
 		new_format_time = datetime.strftime(time, "%H:%M")
 
 		if update_pass == True:
 			if (current_name != course_name and current_code != course_code and 
-				current_exp_date != class_expire_date and current_time != new_format_time and class_pass and  class_confirm_pass):
+				current_exp_date != class_expire_date and current_time != new_format_time 
+					and (current_section != section or section != 0) and class_pass and  class_confirm_pass):
 				self.ui.update_course.setDisabled(False)
 			elif (current_name == course_name and current_code == course_code and 
-				current_exp_date == class_expire_date and current_time == new_format_time and class_pass and  class_confirm_pass):
+				current_exp_date == class_expire_date and current_time == new_format_time
+					and (current_section == section or section != 0) and class_pass and  class_confirm_pass):
 				self.ui.update_course.setDisabled(False)
 			else:
 				self.ui.update_course.setDisabled(True)
 		else:
 			if (current_name == course_name and current_code == course_code and 
-				current_exp_date == class_expire_date and current_time == new_format_time):
-
+				current_exp_date == class_expire_date and current_time == new_format_time and (current_section == section or section == 0)):
 				self.ui.update_course.setDisabled(True)
 			else:
 				self.ui.update_course.setDisabled(False)
@@ -656,7 +714,7 @@ class view_class_window(QMainWindow):
 		global current_expire_datetime
 		
 		teacher_dash_ui_functs.update_class(self, class_id, status, current_expire_datetime)
-		main_window.teacher_classes()
+		main_window.teacher_classes(None)
 		
 class thread_starters:
 	def start_check_class(self, opt):
