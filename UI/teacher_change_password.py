@@ -15,6 +15,8 @@ class Ui_teacher_change_pass(object):
     def setupUi(self, teacher_change_pass):
         teacher_change_pass.setObjectName("teacher_change_pass")
         teacher_change_pass.resize(532, 319)
+        teacher_change_pass.setMinimumSize(QtCore.QSize(532, 319))
+        teacher_change_pass.setMaximumSize(QtCore.QSize(532, 319))
         self.centralwidget = QtWidgets.QWidget(teacher_change_pass)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
@@ -78,7 +80,7 @@ class Ui_teacher_change_pass(object):
 
     def retranslateUi(self, teacher_change_pass):
         _translate = QtCore.QCoreApplication.translate
-        teacher_change_pass.setWindowTitle(_translate("teacher_change_pass", "MainWindow"))
+        teacher_change_pass.setWindowTitle(_translate("teacher_change_pass", "Teacher Change Password"))
         self.label.setText(_translate("teacher_change_pass", "Change Password"))
         self.teacher_change_pass_btn.setText(_translate("teacher_change_pass", "Change Password"))
         self.label_2.setText(_translate("teacher_change_pass", "New Password"))

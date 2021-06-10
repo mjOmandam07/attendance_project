@@ -21,13 +21,13 @@ class DateEdit(QtWidgets.QDateEdit):
         self._today_button.clearFocus()
         today = QtCore.QDate.currentDate()
         self.calendarWidget().setSelectedDate(today)
-
+        
 class Ui_create_class(object):
     def setupUi(self, create_class):
         create_class.setObjectName("create_class")
         create_class.resize(598, 326)
-        create_class.setMinimumSize(QtCore.QSize(0, 0))
-        create_class.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        create_class.setMinimumSize(QtCore.QSize(598, 326))
+        create_class.setMaximumSize(QtCore.QSize(598, 405))
         self.centralwidget = QtWidgets.QWidget(create_class)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -132,7 +132,7 @@ class Ui_create_class(object):
 
     def retranslateUi(self, create_class):
         _translate = QtCore.QCoreApplication.translate
-        create_class.setWindowTitle(_translate("create_class", "MainWindow"))
+        create_class.setWindowTitle(_translate("create_class", "Add Class"))
         self.label_4.setText(_translate("create_class", "Subject Code"))
         self.label_3.setText(_translate("create_class", "Subject Expire Date and Time"))
         self.course_add_pass_btn.setText(_translate("create_class", "Add Password"))

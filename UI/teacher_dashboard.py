@@ -15,6 +15,8 @@ class Ui_teacher_dash(object):
     def setupUi(self, teacher_dash):
         teacher_dash.setObjectName("teacher_dash")
         teacher_dash.resize(819, 617)
+        teacher_dash.setMinimumSize(QtCore.QSize(819, 617))
+        teacher_dash.setMaximumSize(QtCore.QSize(819, 617))
         self.centralwidget = QtWidgets.QWidget(teacher_dash)
         self.centralwidget.setObjectName("centralwidget")
         self.teacher_logout = QtWidgets.QPushButton(self.centralwidget)
@@ -219,6 +221,9 @@ class Ui_teacher_dash(object):
         font.setWeight(50)
         self.number_attendees.setFont(font)
         self.number_attendees.setObjectName("number_attendees")
+        self.view_records = QtWidgets.QPushButton(self.attendance_page)
+        self.view_records.setGeometry(QtCore.QRect(410, 440, 171, 41))
+        self.view_records.setObjectName("view_records")
         self.stackedWidget.addWidget(self.attendance_page)
         self.view_students_page = QtWidgets.QWidget()
         self.view_students_page.setObjectName("view_students_page")
@@ -368,7 +373,7 @@ class Ui_teacher_dash(object):
 
     def retranslateUi(self, teacher_dash):
         _translate = QtCore.QCoreApplication.translate
-        teacher_dash.setWindowTitle(_translate("teacher_dash", "MainWindow"))
+        teacher_dash.setWindowTitle(_translate("teacher_dash", "Welcome | Teacher Dashboard"))
         self.teacher_logout.setText(_translate("teacher_dash", "Logout"))
         self.teacher_view_account.setText(_translate("teacher_dash", "View and Edit Account"))
         self.current_user_name.setText(_translate("teacher_dash", "Firstname"))
@@ -399,6 +404,7 @@ class Ui_teacher_dash(object):
         self.attendance_class_toggle.setText(_translate("teacher_dash", "View Expired Class"))
         self.label_2.setText(_translate("teacher_dash", "Number of Present:"))
         self.number_attendees.setText(_translate("teacher_dash", "9999999999"))
+        self.view_records.setText(_translate("teacher_dash", "View All Records"))
         self.label_11.setText(_translate("teacher_dash", "Student List"))
         self.label_12.setText(_translate("teacher_dash", "Last Name"))
         self.label_13.setText(_translate("teacher_dash", "First Name"))

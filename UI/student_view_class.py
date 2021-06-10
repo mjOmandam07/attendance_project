@@ -15,6 +15,8 @@ class Ui_student_view_class(object):
     def setupUi(self, student_view_class):
         student_view_class.setObjectName("student_view_class")
         student_view_class.resize(666, 323)
+        student_view_class.setMinimumSize(QtCore.QSize(666, 323))
+        student_view_class.setMaximumSize(QtCore.QSize(666, 323))
         self.centralwidget = QtWidgets.QWidget(student_view_class)
         self.centralwidget.setObjectName("centralwidget")
         self.frame = QtWidgets.QFrame(self.centralwidget)
@@ -201,7 +203,7 @@ class Ui_student_view_class(object):
 
     def retranslateUi(self, student_view_class):
         _translate = QtCore.QCoreApplication.translate
-        student_view_class.setWindowTitle(_translate("student_view_class", "MainWindow"))
+        student_view_class.setWindowTitle(_translate("student_view_class", "View Class"))
         self.label_7.setText(_translate("student_view_class", "Created on:"))
         self.course_created_on.setText(_translate("student_view_class", "Created on:"))
         self.top_course_code.setText(_translate("student_view_class", "Course Code"))

@@ -498,31 +498,19 @@ class db(object):
 			return display
 		except Exception as e:
 			print(e)
-'''
-	id, course_id, student_id, is_present, section, lecturer_id, time_joined
 
+	def view_all_attendance(self):
+		cursor = conn.cursor()
+		sql = """
+				SELECT s.id_number, s.first_name, s.last_name, a.subject_name, a.subject_code, c.is_active,  datetime(a.time_joined), a.is_present
+	 					FROM (((attendance as a LEFT JOIN student as s ON s.id_number = a.student_id)
+	 						 LEFT JOIN lecturer as l ON l.id_number = a.lecturer_id)
+	 						 	LEFT JOIN course as c ON c.id = a.course_id)
+	 							WHERE a.lecturer_id = '{}' """.format(self.current_id)
 
-	SELECT c.course_name, c.course_code l.first_name, l.last_name, a.time_joined, a.is_present
-	 FROM (((course as c JOIN lecturer as l) JOIN attendance as a) JOIN student as s)
-	 	WHERE s.student_id = current_user_student and WHERE is_present = True
-
-
-	SELECT c.course_name, c.course_code, l.first_name, l.last_name, a.time_joined, a.is_present
-	 FROM (((course as c JOIN lecturer as l) JOIN attendance as a) JOIN student as s)
-	 	WHERE s.student_id = current_user_student and WHERE is_present = False
-
-
-	 select * from attendance where lecturer_id = current_user_id
-
-	subject name, subject code, first name, last_name, time_join, is_present
-
-
-	student_id, student_fname, student_lname, time_joined, is_present
-
-
-'''
-
-#db = db(current_id='2018-0001', id_number=2)
-#display =db.view_teacher_attendance()
-#for item in display:
-#	print(item)
+		try:
+			cursor.execute(sql)
+			display = cursor.fetchall()
+			return display
+		except Exception as e:
+			print(e)

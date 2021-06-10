@@ -15,6 +15,8 @@ class Ui_subject_pass_window(object):
     def setupUi(self, subject_pass_window):
         subject_pass_window.setObjectName("subject_pass_window")
         subject_pass_window.resize(481, 228)
+        subject_pass_window.setMinimumSize(QtCore.QSize(481, 228))
+        subject_pass_window.setMaximumSize(QtCore.QSize(481, 228))
         self.centralwidget = QtWidgets.QWidget(subject_pass_window)
         self.centralwidget.setObjectName("centralwidget")
         self.top_course_name = QtWidgets.QLabel(self.centralwidget)
@@ -35,6 +37,7 @@ class Ui_subject_pass_window(object):
         self.label.setObjectName("label")
         self.subject_pass = QtWidgets.QLineEdit(self.centralwidget)
         self.subject_pass.setGeometry(QtCore.QRect(100, 110, 281, 31))
+        self.subject_pass.setStyleSheet("")
         self.subject_pass.setEchoMode(QtWidgets.QLineEdit.Password)
         self.subject_pass.setObjectName("subject_pass")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
@@ -54,7 +57,7 @@ class Ui_subject_pass_window(object):
 
     def retranslateUi(self, subject_pass_window):
         _translate = QtCore.QCoreApplication.translate
-        subject_pass_window.setWindowTitle(_translate("subject_pass_window", "MainWindow"))
+        subject_pass_window.setWindowTitle(_translate("subject_pass_window", "Enter Subject Password"))
         self.top_course_name.setText(_translate("subject_pass_window", "Course Name"))
         self.label.setText(_translate("subject_pass_window", "is protected with a password, enter password to attend class"))
         self.label_2.setText(_translate("subject_pass_window", "Password"))

@@ -1,38 +1,5 @@
-import sys
-from datetime import datetime, timedelta
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QRect, QPropertyAnimation
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import * 
-from PyQt5.QtGui import *
-
-from login_signUp import Ui_MainWindow
-
-from student_dashboard import Ui_student_dash
-from teacher_dashboard import Ui_teacher_dash
-
-from teacher_change_password import Ui_teacher_change_pass
-from student_change_password import Ui_student_change_pass
-
-from add_class import Ui_create_class
-from view_class import Ui_view_class
-from student_view_class import Ui_student_view_class
-from subj_password import Ui_subject_pass_window
-
-
-import teacher_dynamic_widgets as dynamic
-import student_dynamic_widgets as student_dynamic
-
-
-from student_dynamic_widgets import student_widget
-from teacher_dynamic_widgets import widgets, expired_class
-
-from class_threads import *
-
-from ui_functions import *
-
+from app_modules import *
 from  logged_user import current_user
-
 global main_window
 
 
@@ -449,7 +416,7 @@ class student_view_class_window(QMainWindow):
 			self.main.show()
 		elif not password:
 			student_id = current_user[1]
-			print(course_id, student_id, section, lecturer_id)
+
 			if section == 'Rizal':
 				section = 1
 			elif section == 'Bonifacio':
@@ -490,7 +457,6 @@ class student_class_password(QMainWindow):
 
 	def check_password(self, id_num, subject_id, section, lecturer_id, password, subject_name, subject_code):
 		id_number = id_num
-		print(id_number)
 		secr = secrets.Secreto()
 		input_password = secr.to_process(self.ui.subject_pass.text())
 		if input_password:
@@ -544,6 +510,7 @@ class teacher_dashboard(QMainWindow):
 		self.ui.number_attendees.setText('0')
 		self.ui.refresh_btn.setText('Clear')
 		self.ui.refresh_btn.clicked.connect(self.clear_table)
+		self.ui.view_records.clicked.connect(self.show_all_records)
 
 		self.ui.student_section.currentIndexChanged.connect(self.view_students)
 		self.ui.student_count.setText('0')
@@ -753,11 +720,16 @@ class teacher_dashboard(QMainWindow):
 
 		self.ui.number_attendees.setText(str(len(current_attendance)))
 
+	
+	def show_all_records(self):
+		self.main = view_all_records()
+		self.main.show_all_records()
+
+
 	def clear_table(self):
 		self.ui.class_attendance.clear()
 		self.ui.attendance_select_sub.setCurrentIndex(0)
 		self.ui.number_attendees.setText('0')
-
 	
 ###########################     TEACHER CHANGE PASSWORD WINDOW ####################################
 class teacher_update_password(QMainWindow):
@@ -837,7 +809,6 @@ class add_class_window(QMainWindow):
 		global main_window
 		self.x_pos = main_window.pos().x()
 		self.y_pos = main_window.pos().y()
-		print(self.x_pos, self.y_pos)
 
 		global add_pass
 		add_pass = False
@@ -1064,6 +1035,43 @@ class view_class_window(QMainWindow):
 		
 		teacher_dash_ui_functs.update_class(self, class_id, status, current_expire_datetime)
 		main_window.teacher_classes(None)
+
+class view_all_records(QMainWindow):
+	def __init__(self):
+		QMainWindow.__init__(self)
+		self.ui = Ui_view_records()
+		self.ui.setupUi(self)
+		self.modal = self.setWindowModality(QtCore.Qt.ApplicationModal)
+
+		self.ui.teacher_attendance_treeWidgetItem = QtWidgets.QTreeWidgetItem
+		#for item in range(self.ui.class_attendance.header().count()):
+		#					self.ui.class_attendance.header().setSectionResizeMode(item, QHeaderView.Stretch)
+		self.show()
+
+	def show_all_records(self):
+		self.ui.class_attendance.clear()
+		current_attendance = []
+		current_attendance.clear()
+		is_present = str
+		database = db(current_id=current_user[1])
+		display = database.view_all_attendance()
+		if display:
+			for item in display:
+				if item[7] == 1:
+					is_present = 'Present'
+				else:
+					is_present = 'Absent'
+
+				if item[5] == 1:
+					is_active = 'Active'
+				else:
+					is_active = 'Expired'
+				new_display = (item[0], item[1], item[2], item[3], item[4], is_active, item[6], is_present)
+				current_attendance.append(new_display)
+
+			for item in current_attendance:
+				self.ui.teacher_attendance_treeWidgetItem(self.ui.class_attendance, [item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]])
+
 		
 class thread_starters:
 	def start_check_class(self, opt, window):
@@ -1080,17 +1088,21 @@ class thread_starters:
 
 
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	window = login_signUp_window()
 	sys.exit(app.exec())
+
+
+
+
+
+
+
+
+
+
+
+
+
+

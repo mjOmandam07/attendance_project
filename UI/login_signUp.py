@@ -15,6 +15,8 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(715, 614)
+        MainWindow.setMinimumSize(QtCore.QSize(715, 614))
+        MainWindow.setMaximumSize(QtCore.QSize(715, 614))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.to_sign_up = QtWidgets.QPushButton(self.centralwidget)
@@ -430,7 +432,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Welcome | Log in or Sign Up"))
         self.to_sign_up.setText(_translate("MainWindow", "Sign Up"))
         self.to_login.setText(_translate("MainWindow", "Log In"))
         self.label_2.setText(_translate("MainWindow", "Are you a"))

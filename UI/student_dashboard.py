@@ -15,6 +15,8 @@ class Ui_student_dash(object):
     def setupUi(self, student_dash):
         student_dash.setObjectName("student_dash")
         student_dash.resize(824, 617)
+        student_dash.setMinimumSize(QtCore.QSize(824, 617))
+        student_dash.setMaximumSize(QtCore.QSize(824, 617))
         self.centralwidget = QtWidgets.QWidget(student_dash)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
@@ -245,7 +247,7 @@ class Ui_student_dash(object):
 
     def retranslateUi(self, student_dash):
         _translate = QtCore.QCoreApplication.translate
-        student_dash.setWindowTitle(_translate("student_dash", "MainWindow"))
+        student_dash.setWindowTitle(_translate("student_dash", "Welcome | Student Dashboard"))
         self.label.setText(_translate("student_dash", "Hello"))
         self.current_user_name.setText(_translate("student_dash", "Firstname"))
         self.student_view_account.setText(_translate("student_dash", "View and Edit Account"))
