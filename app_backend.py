@@ -10,7 +10,7 @@ class db(object):
 						current_id=None, unique_id=None,
 						course_name=None, course_code=None, created_on=None,
 						expire_date=None, is_active=None, lecturer=None, current_datetime = None,
-						has_pass=None, section=None):
+						has_pass=None, section=None, class_filter=None):
 
 		self.unique_id = unique_id
 		self.id_number = id_number
@@ -31,6 +31,8 @@ class db(object):
 		self.is_active = is_active
 		self.lecturer = lecturer
 		self.has_pass = has_pass
+
+		self.class_filter = class_filter
 
 
 ########################################### GENERAL ITEMS FOR UI ##########################################################
@@ -124,7 +126,9 @@ class db(object):
 	def login_student(self):
 		username = self.username
 
-		sql = ''' SELECT * FROM student WHERE username=? '''
+		sql = ''' SELECT s.id, s.id_number, s.first_name, s.last_name,
+					s.gender, s.username, s.password, s.section, sec.name  FROM (student as s LEFT JOIN sections as sec)
+						 WHERE username=? and s.section=sec.id '''
 		cur = conn.cursor()
 		try:
 			cur.execute(sql, (username,))
@@ -133,7 +137,7 @@ class db(object):
 				return data
 			else:
 				return False
-		except Error as e:
+		except Exception as e:
 			print(e)
 		
 	def login_student_back(self):
@@ -146,6 +150,72 @@ class db(object):
 			return display
 		else:
 			return False
+
+	def student_classes(self):
+		cursor = conn.cursor()
+		if self.class_filter == 'active':
+			sql = """ SELECT c.id, c.course_name, c.course_code, date(c.created_on),
+					 time(c.created_on), date(c.expire_date), time(c.expire_date), c.is_active, l.first_name, l.last_name
+					 	FROM (course as c LEFT JOIN lecturer as l) 
+					 		WHERE  c.section = '{}' AND c.is_active = 1 AND c.lecturer = l.id_number ORDER BY c.id DESC""".format(self.section)
+		else:
+			sql = """ SELECT c.id, c.course_name, c.course_code, date(c.created_on),
+					 time(c.created_on), date(c.expire_date), time(c.expire_date), c.is_active, l.first_name, l.last_name
+					 	FROM (course as c LEFT JOIN lecturer as l) 
+					 		WHERE  c.section = '{}' AND c.is_active = 0 AND
+					 			date(c.expire_date) = '{}' AND c.lecturer = l.id_number ORDER BY c.id DESC""".format(self.section, self.current_datetime)
+
+		cursor.execute(sql)
+		display = cursor.fetchall()
+
+		if display:
+			return display
+		else:
+			return False
+
+	def add_attendance(self):
+		cursor = conn.cursor()
+		info = (self.id_number, self.current_id, self.section, self.lecturer, self.course_name, self.course_code)
+		sql = """
+				INSERT INTO attendance (course_id, student_id, is_present, section, lecturer_id, time_joined, subject_name, subject_code)
+				VALUES(?,?,True,?,?,julianday('now', 'localtime'),?,?)  
+			""" 
+
+		try:
+			cursor.execute(sql, info)
+			conn.commit()
+		except Exception as e:
+			print(e)
+
+	def check_if_present(self):
+		cursor = conn.cursor()
+		sql = """SELECT is_present FROM attendance 
+					WHERE student_id = '{}' AND section = '{}'
+					 AND course_id = '{}' AND lecturer_id = '{}'""".format(self.current_id, self.section, self.id_number, self.lecturer)
+
+		cursor.execute(sql)
+		display = cursor.fetchone()
+
+		if display:
+			return display
+		else:
+			False
+
+	def view_student_attendance(self):
+		cursor = conn.cursor()
+		sql = """
+				SELECT c.course_name, c.course_code, l.first_name, l.last_name, a.student_id, datetime(a.time_joined), a.is_present
+	 					FROM (((attendance as a JOIN course as c ON a.course_id = c.id)
+	 							JOIN student as s ON s.id_number = a.student_id) JOIN lecturer as l ON a.lecturer_id = l.id_number)
+	 							WHERE s.id_number = '{}' and is_present = True """.format(self.current_id)
+
+		try:
+			cursor.execute(sql)
+			display = cursor.fetchall()
+			return display
+		except Exception as e:
+			print(e)
+
 
 ########################################### TEACHER PART ##################################################################
 	def add_teacher(self):
@@ -224,7 +294,7 @@ class db(object):
 
 	def view_all_students(self):
 		cursor = conn.cursor()
-		sql = """ SELECT id_number, last_name, first_name, gender FROM student"""
+		sql = """ SELECT id_number, last_name, first_name, gender FROM student WHERE section = '{}'""".format(self.section)
 
 		cursor.execute(sql)
 		display = cursor.fetchall()
@@ -301,14 +371,42 @@ class db(object):
 		else:
 			return False
 
+	def attendance_view_all_class(self):
+		cursor = conn.cursor()
+		sql = """ SELECT c.id, c.course_name, c.course_code
+				 	FROM (course as c LEFT JOIN lecturer as l) 
+				 		WHERE c.lecturer = '{}' AND c.is_active = 1 AND l.id_number = c.lecturer""".format(self.id_number)
+
+		cursor.execute(sql)
+		display = cursor.fetchall()
+
+		if display:
+			return display
+		else:
+			return False
+
+	def attendance_view_all_expired_class(self):
+		cursor = conn.cursor()
+		sql = """ SELECT c.id, c.course_name, c.course_code
+				 	FROM (course as c LEFT JOIN lecturer as l) 
+				 		WHERE c.lecturer = '{}' AND c.is_active = 0 AND l.id_number = c.lecturer""".format(self.id_number)
+
+		cursor.execute(sql)
+		display = cursor.fetchall()
+
+		if display:
+			return display
+		else:
+			return False
+	
 	def view_select_class(self):
 		cursor = conn.cursor()
 		sql = """ SELECT c.id, c.course_name, c.course_code, date(c.expire_date),
 				 time(c.expire_date), c.is_active,  date(c.created_on),
 				 time(c.created_on),  date(c.updated_on),
-				 time(c.updated_on), c.password, c.section
+				 time(c.updated_on), c.password, c.section, l.first_name, l.last_name, l.id_number
 				 	FROM (course as c LEFT JOIN lecturer as l) 
-				 		WHERE c.id = '{}'""".format(self.id_number)
+				 		WHERE c.id = '{}' AND l.id_number = c.lecturer""".format(self.id_number)
 
 		cursor.execute(sql)
 		display = cursor.fetchone()
@@ -385,19 +483,46 @@ class db(object):
 		else:
 			return False
 
+	def view_teacher_attendance(self):
+		cursor = conn.cursor()
+		sql = """
+				SELECT s.id_number, s.first_name, s.last_name,  datetime(a.time_joined), a.is_present
+	 					FROM (((attendance as a LEFT JOIN student as s ON s.id_number = a.student_id)
+	 						 LEFT JOIN lecturer as l ON l.id_number = a.lecturer_id)
+	 						 	LEFT JOIN course as c ON c.id = a.course_id)
+	 							WHERE a.lecturer_id = '{}' AND c.id = '{}' AND is_present = True """.format(self.current_id, self.id_number)
 
-'''class_name = 'Sample Course'
-class_code = 'CSC123'
-class_expire_datetime = '2021-06-06 13:06'
-lecturer = '2018-0001'
-section = 1
-
-database = db(course_name=class_name, course_code=class_code, expire_date=class_expire_datetime, is_active=True,
-								 lecturer=lecturer, has_pass=False, section=section)
-
-database2 = db(id_number=8)
-print(database2.view_select_class())
+		try:
+			cursor.execute(sql)
+			display = cursor.fetchall()
+			return display
+		except Exception as e:
+			print(e)
+'''
+	id, course_id, student_id, is_present, section, lecturer_id, time_joined
 
 
-#database.add_class()
-#Sample Course CSC123 2021-06-06 13:06 True 2018-0001 1'''
+	SELECT c.course_name, c.course_code l.first_name, l.last_name, a.time_joined, a.is_present
+	 FROM (((course as c JOIN lecturer as l) JOIN attendance as a) JOIN student as s)
+	 	WHERE s.student_id = current_user_student and WHERE is_present = True
+
+
+	SELECT c.course_name, c.course_code, l.first_name, l.last_name, a.time_joined, a.is_present
+	 FROM (((course as c JOIN lecturer as l) JOIN attendance as a) JOIN student as s)
+	 	WHERE s.student_id = current_user_student and WHERE is_present = False
+
+
+	 select * from attendance where lecturer_id = current_user_id
+
+	subject name, subject code, first name, last_name, time_join, is_present
+
+
+	student_id, student_fname, student_lname, time_joined, is_present
+
+
+'''
+
+#db = db(current_id='2018-0001', id_number=2)
+#display =db.view_teacher_attendance()
+#for item in display:
+#	print(item)

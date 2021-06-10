@@ -84,7 +84,14 @@ class login_signUp_ui_functions(login_signUp_window):
 			msg.setWindowTitle("Success!")
 			msg.setText("Class Deleted")
 			msg.setIcon(QMessageBox.Information)
-
+		elif category == 'wrong_password':
+			msg.setWindowTitle("ERROR!")
+			msg.setText("Wrong password")
+			msg.setIcon(QMessageBox.Critical)
+		elif category == 'attendance_success':
+			msg.setWindowTitle("Success!")
+			msg.setText("Class Attended!")
+			msg.setIcon(QMessageBox.Information)
 
 		x = msg.exec_()
 
@@ -263,6 +270,7 @@ class student_dash_ui_functs(student_dashboard):
 		self.ui.student_edit.clicked.connect(self.student_dash_buttons)
 		self.ui.student_change_pass.clicked.connect(self.student_dash_buttons)
 		self.ui.student_logout.clicked.connect(self.student_dash_buttons)
+		self.ui.student_view_attendance.clicked.connect(self.student_dash_buttons)
 
 	def view_student_account(self):
 		fname = self.ui.student_fname_edit.setText(current_user[2])
@@ -336,12 +344,39 @@ class student_dash_ui_functs(student_dashboard):
 
 			student_update_password.closeWindow(self)
 
+	def get_classes(self, class_filter):
+		current_date = datetime.today().strftime('%Y-%m-%d')
+		if class_filter == 'active':
+			database = db(section=current_user[7], class_filter='active')
+		else:
+			database = db(section=current_user[7], current_datetime=str(current_date))
+		display = database.student_classes()
+		return display
+
+	def view_student_attendance(self):
+		current_attendance = []
+		current_attendance.clear()
+		is_present = str
+		database = db(current_id=current_user[1])
+		display = database.view_student_attendance()
+		for item in display:
+			if item[6] == 1:
+				is_present = 'Present'
+			else:
+				is_present = 'Absent'
+			new_display = (item[0], item[1], f'{item[2]} {item[3]}', item[4], item[5], is_present)
+			current_attendance.append(new_display)
+		for item in current_attendance:
+			self.ui.student_attendance_treeWidgetItem(self.ui.student_attendance, [item[0], item[1], item[2], item[3], item[4], item[5]])
+
+
 ###########################     TEACHER DASHBOARD      ############################################
 class teacher_dash_ui_functs(teacher_dashboard):
 	def buttons(self):
 		self.ui.teacher_home.clicked.connect(self.teacher_dash_buttons)
 		self.ui.teacher_view_account.clicked.connect(self.teacher_dash_buttons)
 		self.ui.teacher_view_students.clicked.connect(self.teacher_dash_buttons)
+		self.ui.teacher_view_attendance.clicked.connect(self.teacher_dash_buttons)
 		self.ui.teacher_edit.clicked.connect(self.teacher_dash_buttons)
 		self.ui.teacher_change_pass.clicked.connect(self.teacher_dash_buttons)
 		self.ui.teacher_logout.clicked.connect(self.teacher_dash_buttons)
@@ -421,26 +456,30 @@ class teacher_dash_ui_functs(teacher_dashboard):
 
 			teacher_update_password.closeWindow(self)
 
-	def view_student_list(self):
+	def view_student_list(self, section):
 		entry = self.ui.search_student_lineEdit.text()
-		database = db()
+		database = db(section=section)
 		display = database.view_all_students()
-		self.ui.student_count.setText(str(len(display)))
+		
 		data = []
 		searched = []
-		for row in display:
-			n = (str(row[0]), row[1], row[2])
-			data.append(list(n))
+		if display:
+			self.ui.student_count.setText(str(len(display)))
+			for row in display:
+				n = (str(row[0]), row[1], row[2])
+				data.append(list(n))
 
-		self.ui.treeWidget.clear()
-		for row in data:
-			for field in row:
-				if entry.lower() in field.lower():
-					searched.append(row)
-		n = list(unique_everseen(searched))
+			self.ui.treeWidget.clear()
+			for row in data:
+				for field in row:
+					if entry.lower() in field.lower():
+						searched.append(row)
+			n = list(unique_everseen(searched))
 
-		for i in n:
-			self.ui.treeWidgetItem(self.ui.treeWidget, [i[0], i[1], i[2]])
+			for i in n:
+				self.ui.treeWidgetItem(self.ui.treeWidget, [i[0], i[1], i[2]])
+		else:
+			self.ui.student_count.setText('0')
 
 	def get_selected_student(self):
 		getSelected = self.ui.treeWidget.selectedItems()
@@ -486,28 +525,28 @@ class teacher_dash_ui_functs(teacher_dashboard):
 			login_signUp_ui_functions.popups(self, "add_class_success")
 			self.close()
 
-	def toggle_add_class_pass(self, maxHeight, enable):
+	def toggle_add_class_pass(self, maxHeight, enable, x, y):
 		_translate = QtCore.QCoreApplication.translate
 		if enable:
 			# GET Height
 			height = self.height()
 			maxExtend = maxHeight
 			standard = 326
-			base_top = int()
-			extend_top = int()
+			base_top = None
+			extend_top = None
 			# SET MAX Height
 			if height == 326:
 				heightExtended = maxExtend
-				base_top = 220
-				extend_top = 200
+				base_top = y + 177
+				extend_top = y + 146
 				self.ui.course_add_pass_btn.setText('Cancel')
 				self.ui.course_password.setDisabled(False)
 				self.ui.course_confirm_password.setDisabled(False)
 
 			else:
 				heightExtended = standard
-				base_top = 200
-				extend_top = 220
+				base_top = y + 146
+				extend_top = y + 177
 				self.ui.course_add_pass_btn.setText('Add Password')
 				self.ui.course_password.setDisabled(True)
 				self.ui.course_confirm_password.setDisabled(True)
@@ -517,15 +556,27 @@ class teacher_dash_ui_functs(teacher_dashboard):
 			# ANIMATION
 			self.animation = QPropertyAnimation(self, b'geometry')
 			self.animation.setDuration(300)
-			self.animation.setStartValue(QRect(384, base_top, 598, height))
-			self.animation.setEndValue(QRect(384, extend_top, 598, heightExtended))
+			self.animation.setStartValue(QRect(QPoint(x+112,base_top), QSize(598,height)))
+			self.animation.setEndValue(QRect(QPoint(x+112,extend_top), QSize(598, heightExtended)))
 			self.animation.start()
+			#384,base_top
+			#384, extend_top
 			if heightExtended == standard:
 				return True
 
 	def get_classes(self):
 		database = db(id_number=current_user[1])
 		display = database.view_all_class()
+		return display
+
+	def get_attendance_expired_classes(self):
+		database = db(id_number=current_user[1])
+		display = database.attendance_view_all_expired_class()
+		return display
+
+	def get_attendance_classes(self):
+		database = db(id_number=current_user[1])
+		display = database.attendance_view_all_class()
 		return display
 
 	def del_class(self, id_num):
@@ -584,7 +635,7 @@ class teacher_dash_ui_functs(teacher_dashboard):
 			database.remove_class_password()
 			login_signUp_ui_functions.popups(self, "update_success")
 
-	def toggle_update_class_pass(self, maxHeight, enable):
+	def toggle_update_class_pass(self, maxHeight, enable, x, y):
 			_translate = QtCore.QCoreApplication.translate
 			if enable:
 				# GET Height
@@ -596,16 +647,16 @@ class teacher_dash_ui_functs(teacher_dashboard):
 				# SET MAX Height
 				if height == 384:
 					heightExtended = maxExtend
-					base_top = 190
-					extend_top = 170
+					base_top = y + 146
+					extend_top = y + 126
 					self.ui.update_pass_btn.setText('Cancel')
 					self.ui.update_course_password.setDisabled(False)
 					self.ui.update_course_confirm_password.setDisabled(False)
 
 				else:
 					heightExtended = standard
-					base_top = 170
-					extend_top = 190
+					base_top = y + 126
+					extend_top = y + 146
 					self.ui.update_pass_btn.setText('Update Password')
 					self.ui.update_course_password.setDisabled(True)
 					self.ui.update_course_confirm_password.setDisabled(True)
@@ -615,8 +666,10 @@ class teacher_dash_ui_functs(teacher_dashboard):
 				# ANIMATION
 				self.animation = QPropertyAnimation(self, b'geometry')
 				self.animation.setDuration(300)
-				self.animation.setStartValue(QRect(412, base_top, 542, height))
-				self.animation.setEndValue(QRect(412, extend_top, 542, heightExtended))
+				self.animation.setStartValue(QRect(QPoint(x+140,base_top), QSize(542,height)))
+				self.animation.setEndValue(QRect(QPoint(x+140,extend_top), QSize(542, heightExtended)))
+				#(QRect(412, base_top, 542, height)
+				#QRect(412, extend_top, 542, heightExtended
 				self.animation.start()
 				if heightExtended == standard:
 					return True

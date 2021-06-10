@@ -9,6 +9,18 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+class DateEdit(QtWidgets.QDateEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent, calendarPopup=True)
+        self._today_button = QtWidgets.QPushButton(self.tr("Today"))
+        self._today_button.clicked.connect(self._update_today)
+        self.calendarWidget().layout().addWidget(self._today_button)
+
+    @QtCore.pyqtSlot()
+    def _update_today(self):
+        self._today_button.clearFocus()
+        today = QtCore.QDate.currentDate()
+        self.calendarWidget().setSelectedDate(today)
 
 
 class Ui_view_class(object):
@@ -50,7 +62,7 @@ class Ui_view_class(object):
         font.setWeight(50)
         self.top_course_name.setFont(font)
         self.top_course_name.setObjectName("top_course_name")
-        self.update_course_expire_date = QtWidgets.QDateEdit(self.frame)
+        self.update_course_expire_date = DateEdit(self.frame)
         self.update_course_expire_date.setGeometry(QtCore.QRect(40, 210, 101, 21))
         self.update_course_expire_date.setObjectName("update_course_expire_date")
         self.update_course_expire_time = QtWidgets.QTimeEdit(self.frame)

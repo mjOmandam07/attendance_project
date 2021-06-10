@@ -162,7 +162,9 @@ self.view_class.setStyleSheet("*{"
 "*:hover{"
 "    background-color:rgb(191, 191, 191);"
 "}")
+
 self.view_class.setObjectName(str(item[0]))
+
 self.verticalLayout_4.addWidget(self.view_class)
 self.horizontalLayout.addWidget(self.frame_3)
 

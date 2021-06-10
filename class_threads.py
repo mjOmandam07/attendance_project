@@ -1,6 +1,6 @@
 import time
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlite3
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -27,16 +27,16 @@ class check_class_expiration_thread(QThread):
             cursor = conn.cursor()
             sql = """UPDATE course SET is_active = 0 WHERE expire_date <= julianday('{}') AND is_active = 1""".format(current_datetime)
             try:
-            	cursor.execute(sql)
-            	conn.commit()
-            	if cursor.rowcount != 1:
-            		self.check_class_signal.emit(False)
-            	else:
-            		self.check_class_signal.emit(True)
-            	cursor.close()
+                cursor.execute(sql)
+                conn.commit()
+                if cursor.rowcount != 1:
+                    self.check_class_signal.emit(False)
+                else:
+                    self.check_class_signal.emit(True)
+                cursor.close()
 
             except Exception as e:
-            	print(e)
+                print(e)
 
             time.sleep(1)
 
