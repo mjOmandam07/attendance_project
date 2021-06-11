@@ -16,7 +16,7 @@ class Ui_student_dash(object):
         student_dash.setObjectName("student_dash")
         student_dash.resize(824, 617)
         student_dash.setMinimumSize(QtCore.QSize(824, 617))
-        student_dash.setMaximumSize(QtCore.QSize(824, 617))
+
         self.centralwidget = QtWidgets.QWidget(student_dash)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)

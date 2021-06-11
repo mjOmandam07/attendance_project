@@ -16,7 +16,7 @@ class Ui_subject_pass_window(object):
         subject_pass_window.setObjectName("subject_pass_window")
         subject_pass_window.resize(481, 228)
         subject_pass_window.setMinimumSize(QtCore.QSize(481, 228))
-        subject_pass_window.setMaximumSize(QtCore.QSize(481, 228))
+
         self.centralwidget = QtWidgets.QWidget(subject_pass_window)
         self.centralwidget.setObjectName("centralwidget")
         self.top_course_name = QtWidgets.QLabel(self.centralwidget)

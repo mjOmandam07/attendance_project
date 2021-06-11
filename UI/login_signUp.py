@@ -16,7 +16,7 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(715, 614)
         MainWindow.setMinimumSize(QtCore.QSize(715, 614))
-        MainWindow.setMaximumSize(QtCore.QSize(715, 614))
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.to_sign_up = QtWidgets.QPushButton(self.centralwidget)

@@ -26,7 +26,7 @@ class Ui_view_class(object):
         view_class.setObjectName("view_class")
         view_class.resize(542, 384)
         view_class.setMinimumSize(QtCore.QSize(542, 384))
-        view_class.setMaximumSize(QtCore.QSize(542, 474))
+
         self.centralwidget = QtWidgets.QWidget(view_class)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)

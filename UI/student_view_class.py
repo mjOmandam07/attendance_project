@@ -16,7 +16,7 @@ class Ui_student_view_class(object):
         student_view_class.setObjectName("student_view_class")
         student_view_class.resize(666, 323)
         student_view_class.setMinimumSize(QtCore.QSize(666, 323))
-        student_view_class.setMaximumSize(QtCore.QSize(666, 323))
+
         self.centralwidget = QtWidgets.QWidget(student_view_class)
         self.centralwidget.setObjectName("centralwidget")
         self.frame = QtWidgets.QFrame(self.centralwidget)

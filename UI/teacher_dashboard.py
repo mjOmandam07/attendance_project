@@ -16,7 +16,7 @@ class Ui_teacher_dash(object):
         teacher_dash.setObjectName("teacher_dash")
         teacher_dash.resize(819, 617)
         teacher_dash.setMinimumSize(QtCore.QSize(819, 617))
-        teacher_dash.setMaximumSize(QtCore.QSize(819, 617))
+
         self.centralwidget = QtWidgets.QWidget(teacher_dash)
         self.centralwidget.setObjectName("centralwidget")
         self.teacher_logout = QtWidgets.QPushButton(self.centralwidget)

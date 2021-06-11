@@ -16,7 +16,7 @@ class Ui_student_change_pass(object):
         student_change_pass.setObjectName("student_change_pass")
         student_change_pass.resize(532, 319)
         student_change_pass.setMinimumSize(QtCore.QSize(532, 319))
-        student_change_pass.setMaximumSize(QtCore.QSize(532, 319))
+
         self.centralwidget = QtWidgets.QWidget(student_change_pass)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)

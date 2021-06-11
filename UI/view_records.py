@@ -16,7 +16,7 @@ class Ui_view_records(object):
         view_records.setObjectName("view_records")
         view_records.resize(754, 398)
         view_records.setMinimumSize(QtCore.QSize(754, 398))
-        view_records.setMaximumSize(QtCore.QSize(754, 398))
+
         self.centralwidget = QtWidgets.QWidget(view_records)
         self.centralwidget.setObjectName("centralwidget")
         self.class_attendance = QtWidgets.QTreeWidget(self.centralwidget)
