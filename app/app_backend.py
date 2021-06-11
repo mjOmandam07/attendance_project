@@ -1,5 +1,7 @@
 import sqlite3
 import secrets
+import datetime
+import random
 
 conn = sqlite3.connect('attendance.db')
 
@@ -7,7 +9,7 @@ conn = sqlite3.connect('attendance.db')
 class db(object):
 	def __init__(self, id_number=None, first_name=None, last_name=None,
 						gender=None, username=None, password=None,
-						current_id=None, unique_id=None):
+						current_id=None, unique_id=None, sessions_id=None):
 
 		self.unique_id = unique_id
 		self.id_number = id_number
@@ -17,6 +19,7 @@ class db(object):
 		self.password = password
 		self.gender = gender
 		self.current_id = current_id
+		self.sessions_id = sessions_id
 		self.sec = secrets.Secreto()
 
 
@@ -241,6 +244,12 @@ class db(object):
 		else:
 			return False
 
+	def student_attended_classes(self):
+		#date,subject,section,course,start_time,end_time,status in order
+		sql = """ SELECT  """
+		cur = conn.cursor()
+		cur.execute(sql)
+		data = cur.fetchall()
 
-
+		return data
 

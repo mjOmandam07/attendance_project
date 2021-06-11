@@ -13,7 +13,7 @@ from teacher_dashboard import Ui_teacher_dash
 from teacher_change_password import Ui_teacher_change_pass
 from student_change_password import Ui_student_change_pass
 
-from logout import Ui_logout
+# from logout import Ui_logout
 
 from ui_functions import *
 

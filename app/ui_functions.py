@@ -214,6 +214,7 @@ class student_dash_ui_functs(student_dashboard):
 		self.ui.student_edit.clicked.connect(self.student_dash_buttons)
 		self.ui.student_change_pass.clicked.connect(self.student_dash_buttons)
 		self.ui.student_logout.clicked.connect(self.student_dash_buttons)
+		self.ui.student_view_attendance.clicked.connect(self.retrieve_student_classes)
 
 	def view_student_account(self):
 		fname = self.ui.student_fname_edit.setText(current_user[2])
@@ -292,6 +293,22 @@ class student_dash_ui_functs(student_dashboard):
 			login_signUp_ui_functions.popups(self, "update_success")
 
 			student_update_password.closeWindow(self)
+
+	def retrieve_student_classes(self):
+		self.ui.stackedWidget.setCurrentWidget(self.ui.student_classes)
+		database = db()
+		classes_attended = database.student_attended_classes()
+		row = 0
+		self.tableWidget.setRowCount(len(classes_attended))
+		for class_attended in classes_attended:
+			self.tableWidget.setItem(row, 0, QtWidgets.QTableWidgetItem(classes_attended["date"]))
+			self.tableWidget.setItem(row, 1, QtWidgets.QTableWidgetItem(classes_attended["subject"]))
+			self.tableWidget.setItem(row, 2, QtWidgets.QTableWidgetItem(classes_attended["section"]))
+			self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem(classes_attended["course"]))
+			self.tableWidget.setItem(row, 4, QtWidgets.QTableWidgetItem(classes_attended["start_time"]))
+			self.tableWidget.setItem(row, 5, QtWidgets.QTableWidgetItem(classes_attended["end_time"]))
+			self.tableWidget.setItem(row, 6, QtWidgets.QTableWidgetItem(classes_attended["status"]))
+			row = row + 1
 
 ###########################     TEACHER DASHBOARD      ############################################
 class teacher_dash_ui_functs(teacher_dashboard):
